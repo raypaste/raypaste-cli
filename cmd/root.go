@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"raypaste-cli/internal/config"
+	"raypaste-cli/internal/output"
 
 	"github.com/spf13/cobra"
 )
@@ -24,15 +25,15 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "raypaste",
-	Short: "Generate AI-optimized prompts from your input",
-	Long: `raypaste-cli - Ultra-fast AI revised meta prompts from your input text.
+	Short: output.Cyan("Generate ") + output.Bold("AI-optimized prompts") + output.Cyan(" from your input"),
+	Long: output.Bold("raypaste-cli") + output.Cyan(" - Ultra-fast AI revised meta prompts from your input text.") + `
 
 A Cobra-based CLI that generates meta-prompts and general AI completions via OpenRouter,
 with configurable output lengths and fast/small model routing.
 
-Examples:
-  raypaste generate "help me write a blog post" --length short --copy
-  raypaste gen "analyze CSV data" -l long
+` + output.Bold("Examples:") + `
+  raypaste generate "help me write a blog post" ` + output.Green("--length short --copy") + `
+  raypaste gen "analyze CSV data" ` + output.Green("-l long") + `
   echo "my goal" | raypaste gen
   raypaste interactive`,
 }

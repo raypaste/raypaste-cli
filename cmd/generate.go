@@ -14,6 +14,7 @@ import (
 	"raypaste-cli/internal/clipboard"
 	"raypaste-cli/internal/config"
 	"raypaste-cli/internal/llm"
+	"raypaste-cli/internal/output"
 	"raypaste-cli/internal/prompts"
 
 	"github.com/spf13/cobra"
@@ -24,16 +25,16 @@ var generateCmd = &cobra.Command{
 	Use:     "generate [input]",
 	Aliases: []string{"gen", "g"},
 	Short:   "Generate an optimized prompt from your input",
-	Long: `Generate an optimized prompt from your input text.
+	Long: output.Bold("Generate an optimized prompt") + output.Cyan(" from your input text.") + `
 
 The generate command takes your input (from arguments or stdin) and generates
 an optimized prompt using the specified model and output length.
 
-Examples:
-  raypaste generate "help me write a blog post" --length short --copy
-  raypaste gen "analyze CSV data" -l long
+` + output.Bold("Examples:") + `
+  raypaste generate "help me write a blog post" ` + output.Green("--length short --copy") + `
+  raypaste gen "analyze CSV data" ` + output.Green("-l long") + `
   echo "my goal" | raypaste gen
-  raypaste g "create a REST API" -m cerebras-llama-8b`,
+  raypaste g "create a REST API" ` + output.Green("-m cerebras-llama-8b"),
 	RunE: runGenerate,
 }
 
@@ -90,7 +91,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	client := llm.NewClient(cfg.GetAPIKey())
 
 	// Show progress indicator
-	fmt.Fprintln(os.Stderr, "Generating...")
+	fmt.Fprintln(os.Stderr, output.GeneratingMessage())
 	fmt.Fprintln(os.Stderr, "")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -101,8 +102,8 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("generation failed: %w", err)
 	}
 
-	// Print result to stdout
-	fmt.Println(result)
+	// Print result to stdout (colorize if markdown)
+	fmt.Println(output.ColorizeMarkdown(result))
 
 	// Copy to clipboard if requested
 	shouldCopy := copyFlag || cfg.AutoCopy
@@ -111,7 +112,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 			fmt.Fprintln(os.Stderr, warning)
 		} else {
 			fmt.Fprintln(os.Stderr, "")
-			fmt.Fprintln(os.Stderr, "✓ Copied to clipboard")
+			fmt.Fprintln(os.Stderr, output.CopiedMessage())
 		}
 	}
 

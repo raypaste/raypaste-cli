@@ -14,6 +14,7 @@ A powerful [Cobra](https://cobra.dev/)-based CLI that generates meta-prompts and
 - **Custom Prompts**: Create and manage your own prompt templates
 - **Flexible Configuration**: Configure via YAML, environment variables, or CLI flags
 - **OpenRouter Integration**: Access to multiple LLM providers through a single API
+- **Colored Output**: Automatic markdown detection with colored status messages for better readability
 
 ## Installation
 
@@ -250,6 +251,17 @@ Output length controls both the desired response length and the `max_tokens` par
 
 The system prompt includes guidance for each length to ensure appropriate output.
 
+## Colored Output
+
+raypaste automatically formats prompts with colored output:
+
+- **Markdown Detection**: The CLI automatically detects when output appears to be markdown (based on syntax patterns like headers, lists, code blocks, etc.) and prepares it for potential syntax highlighting in future versions.
+
+- **Disabling Colors**: Colors respect the `NO_COLOR` environment variable and terminal capabilities. To disable colors:
+  ```bash
+  NO_COLOR=1 raypaste gen "hello world"
+  ```
+
 ## Custom Prompt Templates
 
 ### Built-in Prompts
@@ -458,9 +470,6 @@ This project uses Go 1.24's new `tool` directive for consistent development tool
 ```bash
 # Using go tool (recommended - uses pinned version)
 go tool golangci-lint run ./...
-
-# Or with colored output
-go tool golangci-lint run ./... --out-format=colored-line-number
 ```
 
 **Running Tests:**
