@@ -1,0 +1,40 @@
+# Binary executables
+# Cobra usually compiles to a single binary
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+
+# Output of 'go build' (if you don't use the bin/ folder)
+raypaste-cli
+
+# Dependency directories
+# (Only ignore vendor/ if you aren't "vending" your dependencies)
+vendor/
+
+# Test coverage files
+*.out
+*.test
+*.prof
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDE Specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Specific
+.DS_Store
+Thumbs.db
