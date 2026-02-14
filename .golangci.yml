@@ -21,8 +21,3 @@ issues:
   max-same-issues: 0
   # Show only new issues created after comparing with the base branch
   new: false
-
-output:
-  # Format code with line numbers
-  formats:
-    - format: colored-line-number
