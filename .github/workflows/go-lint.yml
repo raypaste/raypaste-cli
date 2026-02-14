@@ -39,7 +39,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v4
         with:
-          version: v1.56 # Use a specific stable version, e.g., v1.56 or 'latest'
+          version: v2.6
           args: --out-format=colored-line-number
           # Optional: Specify a custom config file
           # config: .golangci.yml
