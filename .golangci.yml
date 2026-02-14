@@ -1,0 +1,26 @@
+version: "2"
+
+run:
+  timeout: 5m
+  go: "1.24"
+
+linters:
+  enable:
+    - errcheck # Checks for unchecked errors
+    - ineffassign # Detects when assignments are not used
+    - govet # Reports suspicious constructs
+    - staticcheck # Checks for correctness
+    - unused # Checks for unused constants, variables, functions, and types
+    - misspell # Finds commonly misspelled English words
+
+formatters:
+  enable:
+    - gofmt # Checks if code is gofmt-ed
+    - goimports # Checks import formatting
+
+issues:
+  # Maximum number of issues to report
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  # Show only new issues created after comparing with the base branch
+  new: false

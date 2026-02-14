@@ -1,0 +1,93 @@
+---
+description: Core raypaste-cli project architecture and conventions
+alwaysApply: true
+---
+
+# raypaste-cli Project Context
+
+## Architecture Overview
+
+**CLI Tool**: Cobra-based CLI for generating AI-optimized prompts via OpenRouter API
+
+**Key Packages**:
+
+- `cmd/` - Cobra commands (root, generate, interactive)
+- `internal/config/` - Viper config + model registry
+- `internal/llm/` - OpenRouter client with streaming
+- `internal/prompts/` - Prompt templates + store
+- `internal/clipboard/` - Cross-platform clipboard ops
+- `pkg/types/` - Shared types
+
+## Core Concepts
+
+**Output Lengths**: Control response size via max_tokens + system prompt directives
+
+- `short`: 300 tokens, concise prompts
+- `medium`: 800 tokens, balanced detail
+- `long`: 1500 tokens, comprehensive
+
+**Model Resolution**: Custom models → DefaultModels → treat as OpenRouter ID
+
+**Config Hierarchy**: CLI flags → env vars (`RAYPASTE_*`) → `~/.raypaste/config.yaml` → defaults
+
+**Streaming**: SSE parsing for interactive mode, non-streaming for generate command
+
+## Code Patterns
+
+**Error Handling**:
+
+```go
+// Network errors: retry once
+if err != nil || resp.StatusCode >= 500 {
+    time.Sleep(1 * time.Second)
+    resp, err = client.Do(req)
+}
+
+// User-facing errors: clear, actionable
+return fmt.Errorf("API key not found. Set RAYPASTE_API_KEY or add to config.yaml")
+```
+
+**Config Access**:
+
+```go
+cfg := config.GetConfig()
+apiKey := cfg.GetAPIKey()  // Falls back to env var
+model := cfg.GetDefaultModel()  // Falls back to "cerebras-llama-8b"
+```
+
+**Prompt Rendering**:
+
+```go
+store, _ := prompts.NewStore()
+systemPrompt, _ := store.Render("metaprompt", types.OutputLengthMedium)
+// Template {{.LengthDirective}} auto-replaced
+```
+
+**Code Styling**:
+
+- Avoid nested anonymous structs; use explicit named types (e.g., `type Message struct` instead of inline `struct { ... }`)
+- Prefer reusable types over inline struct definitions for better maintainability and type safety
+
+## Testing
+
+Run tests: `go test ./...`
+
+Mock external dependencies, test core logic (config, router, prompts).
+
+## Common Tasks
+
+**Build and install**: Run `./build` to build and install to `/usr/local/bin/`
+
+**Add new model**: Update `DefaultModels` in `internal/config/models.go`
+
+**Add prompt template**: Create YAML in `~/.raypaste/prompts/` or add to `internal/prompts/defaults/`
+
+**Modify output lengths**: Update `LengthParams` map in `internal/llm/router.go`
+
+## Maintaining This Rule
+
+**When making major changes** (architecture shifts, new core concepts, changed patterns):
+
+- Update this rule file (`.cursor/rules/raypaste-project.mdc`)
+- Update relevant skills in `~/.cursor/skills-cursor/` if applicable
+- Keep examples concrete and patterns consistent

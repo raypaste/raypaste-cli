@@ -1,0 +1,43 @@
+# raypaste-cli configuration file
+# Copy this file to ~/.raypaste/config.yaml and customize as needed
+
+# OpenRouter API key (can also be set via RAYPASTE_API_KEY environment variable)
+api_key: ""
+
+# Default model to use
+default_model: cerebras-llama-8b
+
+# Default output length: short, medium, or long
+default_length: medium
+
+# Automatically copy results to clipboard
+auto_copy: false
+
+# Temperature for LLM generation (0.0 to 1.0)
+# Lower values are more deterministic, higher values are more creative
+temperature: 0.7
+
+# Custom model definitions
+# Add your own model aliases here
+models:
+  # Example: Add a custom model
+  # my-custom-model:
+  #   id: "provider/model-name"
+  #   provider: "provider-name"
+  #   tier: "fast"
+
+  # Built-in models (you can override these)
+  cerebras-llama-8b:
+    id: "meta-llama/llama-3.1-8b-instruct"
+    provider: cerebras
+    tier: fast
+
+  cerebras-gpt-oss-120b:
+    id: "openai/gpt-oss-120b"
+    provider: cerebras
+    tier: balanced
+
+  openai-gpt5-nano:
+    id: "openai/gpt5-nano"
+    provider: openai
+    tier: fast

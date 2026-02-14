@@ -4,26 +4,37 @@ Copyright © 2026 Raypaste
 package cmd
 
 import (
+	"fmt"
 	"os"
+
+	"raypaste-cli/internal/config"
 
 	"github.com/spf13/cobra"
 )
 
+var (
+	cfgFile    string
+	modelFlag  string
+	lengthFlag string
+	promptFlag string
+	copyFlag   bool
+	cfg        *config.Config
+)
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "raypaste-cli",
-	Short: "Quickly copy to your clipboard AI revised text.",
-	Long: `Quickly copy to your clipboard AI revised text.
+	Use:   "raypaste",
+	Short: "Generate AI-optimized prompts from your input",
+	Long: `raypaste-cli - Ultra-fast AI revised meta prompts from your input text.
 
-Usage:
-  raypaste-cli [text]
+A Cobra-based CLI that generates meta-prompts and general AI completions via OpenRouter,
+with configurable output lengths and fast/small model routing.
 
-Commands:
-  help        Help about any command
-`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+Examples:
+  raypaste generate "help me write a blog post" --length short --copy
+  raypaste gen "analyze CSV data" -l long
+  echo "my goal" | raypaste gen
+  raypaste interactive`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -36,13 +47,28 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	cobra.OnInitialize(initConfig)
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.raypaste-cli.yaml)")
+	// Persistent flags (available to all subcommands)
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.raypaste/config.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&modelFlag, "model", "m", "", "Model alias or OpenRouter ID")
+	rootCmd.PersistentFlags().StringVarP(&lengthFlag, "length", "l", "medium", "Output length: short|medium|long")
+	rootCmd.PersistentFlags().StringVarP(&promptFlag, "prompt", "p", "metaprompt", "Prompt template name")
+	rootCmd.PersistentFlags().BoolVarP(&copyFlag, "copy", "c", false, "Auto-copy result to clipboard")
+}
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+// initConfig reads in config file and ENV variables if set
+func initConfig() {
+	var err error
+	cfg, err = config.LoadConfig(cfgFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Validate API key
+	if cfg.GetAPIKey() == "" {
+		fmt.Fprintln(os.Stderr, "Error: API key not found. Set RAYPASTE_API_KEY environment variable or add to config.yaml")
+		os.Exit(1)
+	}
 }
