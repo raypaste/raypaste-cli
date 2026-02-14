@@ -9,6 +9,7 @@ bin/
 dist/
 
 # Output of 'go build' (if you don't use the bin/ folder)
+raypaste
 raypaste-cli
 
 # Dependency directories
@@ -29,6 +30,9 @@ go.work.sum
 .env.*
 !.env.example
 
+# Config
+config.yaml
+
 # IDE Specific
 .vscode/
 .idea/
@@ -38,3 +42,6 @@ go.work.sum
 # OS Specific
 .DS_Store
 Thumbs.db
+
+# Dev
+.cursor/plans

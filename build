@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Build script for raypaste-cli
+# Builds the binary and installs it to /usr/local/bin
+
+set -e
+
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+echo "Building raypaste-cli..."
+go build -o raypaste
+
+if [ ! -f raypaste ]; then
+    echo -e "${RED}Error: Build failed - raypaste binary not found${NC}"
+    exit 1
+fi
+
+echo "Installing to /usr/local/bin..."
+sudo mv raypaste /usr/local/bin/
+
+echo -e "${GREEN}✓ raypaste installed successfully!${NC}"
+echo "Run 'raypaste --help' to get started."
