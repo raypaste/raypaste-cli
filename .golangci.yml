@@ -7,14 +7,17 @@ run:
 linters:
   enable:
     - errcheck # Checks for unchecked errors
-    - gofmt # Checks if code is gofmt-ed
     - ineffassign # Detects when assignments are not used
     - govet # Reports suspicious constructs
-    - gosimple # Suggests simplifications
     - staticcheck # Checks for correctness
     - unused # Checks for unused constants, variables, functions, and types
     - misspell # Finds commonly misspelled English words
+
+formatters:
+  enable:
+    - gofmt # Checks if code is gofmt-ed
     - goimports # Checks import formatting
+
 issues:
   # Maximum number of issues to report
   max-issues-per-linter: 0

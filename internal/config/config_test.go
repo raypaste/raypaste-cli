@@ -53,8 +53,12 @@ func TestConfigGetAPIKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.envKey != "" {
-				os.Setenv("RAYPASTE_API_KEY", tt.envKey)
-				defer os.Unsetenv("RAYPASTE_API_KEY")
+				if err := os.Setenv("RAYPASTE_API_KEY", tt.envKey); err != nil {
+					t.Fatalf("Failed to set env var: %v", err)
+				}
+				defer func() {
+					_ = os.Unsetenv("RAYPASTE_API_KEY")
+				}()
 			}
 
 			got := tt.cfg.GetAPIKey()

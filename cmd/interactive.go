@@ -95,7 +95,9 @@ func runInteractive(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create readline: %w", err)
 	}
-	defer rl.Close()
+	defer func() {
+		_ = rl.Close()
+	}()
 
 	printWelcome(state)
 

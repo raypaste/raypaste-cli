@@ -66,7 +66,9 @@ func (c *Client) Complete(ctx context.Context, req types.CompletionRequest) (str
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	// Check status code
 	if resp.StatusCode != http.StatusOK {
@@ -117,7 +119,9 @@ func (c *Client) StreamComplete(ctx context.Context, req types.CompletionRequest
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	// Check status code
 	if resp.StatusCode != http.StatusOK {

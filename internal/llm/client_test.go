@@ -112,7 +112,9 @@ func TestGetBodySetForRetry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Request failed: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	// Verify we got a successful response
 	if resp.StatusCode != http.StatusOK {
@@ -205,7 +207,9 @@ func TestRetryWithBodyRecreation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Request failed: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	// Verify we got a successful response
 	if resp.StatusCode != http.StatusOK {
