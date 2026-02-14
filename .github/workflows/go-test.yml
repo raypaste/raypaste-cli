@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write # For commenting coverage summary
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,7 +26,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version: "1.25.0"
 
       - name: Cache Go modules
         uses: actions/cache@v4
@@ -37,20 +36,5 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Run Go tests with coverage
-        run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.out
-
-      # Optional: Comment coverage summary on PRs (requires additional action, e.g., marcbinz/go-unit-test-action)
-      # - name: Go Unit Test Action
-      #   if: github.event_name == 'pull_request'
-      #   uses: marcbinz/go-unit-test-action@v1
-      #   with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     report_coverage: true
-      #     json_file: coverage.out
+      - name: Run Go tests
+        run: go test ./... -race
