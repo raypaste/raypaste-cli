@@ -15,8 +15,6 @@ linters:
     - unused # Checks for unused constants, variables, functions, and types
     - misspell # Finds commonly misspelled English words
     - goimports # Checks import formatting
-  disable-all: false
-
 issues:
   # Maximum number of issues to report
   max-issues-per-linter: 0
