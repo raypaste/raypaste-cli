@@ -45,3 +45,6 @@ Thumbs.db
 
 # Dev
 .cursor/plans
+
+# Patch files
+*.patch

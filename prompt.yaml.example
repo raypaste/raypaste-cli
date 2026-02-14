@@ -1,0 +1,28 @@
+# Example custom prompt for raypaste
+# Place this file in ~/.raypaste/prompts/ to use it
+# Filename can be anything ending in .yaml or .yml
+
+name: bulletlist
+description: Organize text by relation and output as a short bulleted list
+
+# The system prompt template
+# Use {{.LengthDirective}} to inject the length-specific guidance
+system: |
+  You are a text organizer. Given user input, analyze the content and organize it by relation into a short bulleted list.
+
+  Output length guidance: {{.LengthDirective}}
+
+  CRITICAL: 
+  - Order items by their logical relation (group related concepts together)
+  - Output ONLY the bulleted list itself
+  - Do NOT include any preamble, explanations, or meta-commentary
+  - Start directly with the bullet points
+  - Use clear, concise bullet points
+
+# Optional: Define custom length directives for each output length
+# If omitted, the default directives from raypaste will be used
+# To restrict certain lengths, simply omit them from this map
+length_directives:
+  short: "Keep the generated prompt concise — under 100 words. Focus on the core instruction only."
+  medium: "Generate a moderately detailed prompt (~150-300 words) with context, constraints, and desired output format."
+  # Note: 'long' is intentionally omitted to restrict this prompt to short/medium only

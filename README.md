@@ -252,6 +252,49 @@ The system prompt includes guidance for each length to ensure appropriate output
 
 ## Custom Prompt Templates
 
+### Built-in Prompts
+
+raypaste includes the following built-in prompts:
+
+| Name         | Description                                                   | Supported Lengths   |
+| ------------ | ------------------------------------------------------------- | ------------------- |
+| `metaprompt` | Generate an optimized meta-prompt from a user's goal          | short, medium, long |
+| `bulletlist` | Organize text by relation and output as a short bulleted list | short, medium       |
+
+### Creating Your First Custom Prompt
+
+Let's create an ASCII art prompt to get you started. This prompt will only support medium mode:
+
+Running the below adds `ascii-art.yaml` with the below prompt info/content to your `.raypaste/prompts` folder.
+
+```bash
+mkdir -p ~/.raypaste/prompts && cat > ~/.raypaste/prompts/ascii-art.yaml << 'EOF'
+name: ascii-art
+description: "Convert text into ASCII art/emoji representation"
+system: |
+  You are an ASCII art expert. Create creative ASCII art or emoji-based representations of the input text.
+
+  Output length guidance: {{.LengthDirective}}
+
+  CRITICAL:
+  - Output ONLY the ASCII art itself, no explanations or preamble
+  - Use creative arrangements of ASCII characters or emojis
+  - Make it visually appealing and recognizable
+  - Keep it readable in a terminal
+
+length_directives:
+  medium: "Create a medium-sized ASCII art (5-15 lines) with good detail and creativity"
+EOF
+```
+
+**Try it out:**
+
+```bash
+raypaste gen "coffee cup" -p ascii-art
+raypaste gen "happy cat" -p ascii-art
+raypaste gen "rocket ship" -p ascii-art
+```
+
 ### Creating Custom Prompts
 
 Create YAML files in `~/.raypaste/prompts/`:
@@ -272,6 +315,17 @@ length_directives:
   medium: "Generate a balanced review prompt covering functionality, style, and best practices."
   long: "Generate a comprehensive review prompt including security, performance, testing, and documentation."
 ```
+
+**Restricting Output Lengths**: To limit a prompt to specific output lengths, simply omit the unwanted lengths from `length_directives`. For example, to support only short and medium modes:
+
+```yaml
+length_directives:
+  short: "Your short directive here"
+  medium: "Your medium directive here"
+  # long is intentionally omitted
+```
+
+See `prompt.yaml.example` for a complete example, or read the full [Custom Prompt Guide](PROMPT_GUIDE.md).
 
 ### Using Custom Prompts
 

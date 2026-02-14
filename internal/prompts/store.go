@@ -65,7 +65,20 @@ func (s *Store) loadBuiltInPrompts() error {
 		},
 	}
 
+	// Create bulletlist prompt (only supports short and medium)
+	bulletListPrompt := &Prompt{
+		Name:        defaults.BulletListName,
+		Description: defaults.BulletListDescription,
+		System:      defaults.BulletListTemplate,
+		LengthDirectives: map[string]string{
+			string(types.OutputLengthShort):  llm.LengthParams[types.OutputLengthShort].Directive,
+			string(types.OutputLengthMedium): llm.LengthParams[types.OutputLengthMedium].Directive,
+			// Note: long mode intentionally not supported for bulletlist
+		},
+	}
+
 	s.prompts[defaults.MetaPromptName] = metaPrompt
+	s.prompts[defaults.BulletListName] = bulletListPrompt
 	return nil
 }
 
@@ -142,7 +155,13 @@ func (s *Store) Render(name string, length types.OutputLength) (string, error) {
 
 	directive, ok := prompt.LengthDirectives[string(length)]
 	if !ok {
-		// Fall back to default directive
+		// Check if this prompt has any length directives defined
+		if len(prompt.LengthDirectives) > 0 {
+			// If the prompt has specific length directives but this length isn't supported,
+			// return an error instead of falling back
+			return "", fmt.Errorf("prompt '%s' does not support output length '%s'", name, length)
+		}
+		// Fall back to default directive for prompts without specific directives
 		directive = llm.LengthParams[length].Directive
 	}
 
