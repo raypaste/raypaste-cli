@@ -68,6 +68,20 @@ systemPrompt, _ := store.Render("metaprompt", types.OutputLengthMedium)
 - Avoid nested anonymous structs; use explicit named types (e.g., `type Message struct` instead of inline `struct { ... }`)
 - Prefer reusable types over inline struct definitions for better maintainability and type safety
 
+**Terminal Output & Colors**:
+
+- Use `internal/output` package for all colored output.
+- **Standard Colors**:
+  - Errors: `output.Red`
+  - Success/Confirmation: `output.Green`
+  - Warnings: `output.Yellow`
+  - Info/Headers: `output.Cyan` or `output.Blue`
+  - Emphasis: `output.Bold`
+- **Guidelines**:
+  - Ensure high contrast (e.g., avoid dark blue on black).
+  - Use colors sparingly to highlight key information.
+  - `internal/output` handles `NO_COLOR` automatically.
+
 ## Testing
 
 Run tests: `go test ./...`
@@ -83,6 +97,10 @@ Mock external dependencies, test core logic (config, router, prompts).
 **Add prompt template**: Create YAML in `~/.raypaste/prompts/` or add to `internal/prompts/defaults/`
 
 **Modify output lengths**: Update `LengthParams` map in `internal/llm/router.go`
+
+## Other Instructions
+
+- Do not write summaries or recaps in .md documents, keep explanations concise unless specifically asked otherwise.
 
 ## Maintaining This Rule
 

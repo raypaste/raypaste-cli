@@ -14,6 +14,7 @@ import (
 	"raypaste-cli/internal/clipboard"
 	"raypaste-cli/internal/config"
 	"raypaste-cli/internal/llm"
+	"raypaste-cli/internal/output"
 	"raypaste-cli/internal/prompts"
 	"raypaste-cli/pkg/types"
 
@@ -26,24 +27,27 @@ var interactiveCmd = &cobra.Command{
 	Use:     "interactive",
 	Aliases: []string{"i", "repl"},
 	Short:   "Start an interactive REPL session",
-	Long: `Start an interactive REPL session with streaming output.
+	Long: output.Bold("Start an interactive REPL session") + output.Cyan(" with streaming output.") + `
 
 The interactive mode provides a REPL (Read-Eval-Print Loop) where you can
 continuously generate prompts with streaming output.
 
-Slash commands:
-  /length <short|medium|long>  - Change output length
-  /model <alias>               - Switch model
-  /copy                        - Copy last response to clipboard
-  /prompt <name>               - Switch prompt template
-  /help                        - Show help
-  /quit or /exit               - Exit REPL
+` + output.Bold("Slash commands:") + `
+  ` + output.Green("/length") + `                       - Show current length and list of available lengths
+  ` + output.Green("/length [name]") + `                - Change output length to provided length
+	` + output.Green("/model") + `                        - Show current model and list of available models
+  ` + output.Green("/model [name]") + `                 - Switch model to provided model
+  ` + output.Green("/copy") + `                         - Copy last response to clipboard
+	` + output.Green("/prompt") + `                       - Show current prompt and list of available prompts
+  ` + output.Green("/prompt [name]") + `         			  - Switch prompt template to provided prompt
+  ` + output.Green("/help") + `                         - Show help
+  ` + output.Green("/quit") + ` or ` + output.Green("/exit") + `                - Exit REPL
 
-Keyboard shortcuts:
-  Ctrl+C  - Cancel current generation
-  Ctrl+D  - Exit REPL
+` + output.Bold("Keyboard shortcuts:") + `
+  ` + output.Yellow("Ctrl+C") + `  - Cancel current generation
+  ` + output.Yellow("Ctrl+D") + `  - Exit REPL
 
-Example:
+` + output.Bold("Example:") + `
   raypaste interactive
   raypaste i`,
 	RunE: runInteractive,
@@ -132,15 +136,32 @@ func runInteractive(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	fmt.Println("\nGoodbye!")
+	fmt.Println(output.Bold(output.Green("\nGoodbye!")))
 	return nil
 }
 
 func printWelcome(state *replState) {
-	fmt.Println("raypaste interactive mode")
-	fmt.Printf("Model: %s | Length: %s | Prompt: %s\n", state.model, state.length, state.promptName)
-	fmt.Println("Type /help for commands, /quit to exit")
-	fmt.Println()
+	for _, line := range formatWelcomeLines(state) {
+		fmt.Print(line)
+	}
+}
+
+func formatWelcomeLines(state *replState) []string {
+	return []string{
+		fmt.Sprintf("%s\n", output.Cyan("raypaste interactive mode")),
+		fmt.Sprintf(
+			"Model: %s | Length: %s | Prompt: %s\n",
+			output.Bold(output.Blue(state.model)),
+			output.Bold(output.Yellow(string(state.length))),
+			output.Bold(output.Green(state.promptName)),
+		),
+		fmt.Sprintf(
+			"Type %s for commands, %s to exit\n",
+			output.Bold(output.Green("/help")),
+			output.Bold(output.Red("/quit")),
+		),
+		"\n",
+	}
 }
 
 func handleSlashCommand(line string, state *replState) bool {
@@ -161,55 +182,66 @@ func handleSlashCommand(line string, state *replState) bool {
 
 	case "/length", "/l":
 		if len(args) == 0 {
-			fmt.Printf("Current length: %s\n", state.length)
-			fmt.Println("Usage: /length <short|medium|long>")
+			fmt.Printf("Current length: %s\n", output.Bold(output.Yellow(string(state.length))))
+			fmt.Printf("Usage: %s\n", output.Cyan("/length <short|medium|long>"))
 			return false
 		}
 		length, err := config.ValidateOutputLength(args[0])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Error: %v\n", output.Red(err.Error()))
 			return false
 		}
 		state.length = length
-		fmt.Printf("Length set to: %s\n", length)
+		fmt.Printf("Length set to: %s\n", output.Bold(output.Yellow(string(length))))
 
 	case "/model", "/m":
 		if len(args) == 0 {
-			fmt.Printf("Current model: %s\n", state.model)
-			fmt.Println("Usage: /model <alias>")
+			fmt.Printf("Current model: %s\n", output.Bold(output.Blue(state.model)))
+			models := config.ListModels(cfg.Models)
+			coloredModels := make([]string, len(models))
+			for i, m := range models {
+				coloredModels[i] = output.Blue(m)
+			}
+			fmt.Printf("Available models: %s\n", strings.Join(coloredModels, ", "))
+			fmt.Printf("Usage: %s\n", output.Cyan("/model <alias>"))
 			return false
 		}
 		state.model = args[0]
-		fmt.Printf("Model set to: %s\n", state.model)
+		fmt.Printf("Model set to: %s\n", output.Bold(output.Blue(state.model)))
 
 	case "/prompt", "/p":
 		if len(args) == 0 {
-			fmt.Printf("Current prompt: %s\n", state.promptName)
-			fmt.Println("Available prompts:", strings.Join(state.store.List(), ", "))
-			fmt.Println("Usage: /prompt <name>")
+			fmt.Printf("Current prompt: %s\n", output.Bold(output.Green(state.promptName)))
+			prompts := state.store.List()
+			coloredPrompts := make([]string, len(prompts))
+			for i, p := range prompts {
+				coloredPrompts[i] = output.Green(p)
+			}
+			fmt.Printf("Available prompts: %s\n", strings.Join(coloredPrompts, ", "))
+			fmt.Printf("Usage: %s\n", output.Cyan("/prompt <name>"))
 			return false
 		}
 		// Verify prompt exists
 		if _, err := state.store.Get(args[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Error: %v\n", output.Red(err.Error()))
 			return false
 		}
 		state.promptName = args[0]
-		fmt.Printf("Prompt set to: %s\n", state.promptName)
+		fmt.Printf("Prompt set to: %s\n", output.Bold(output.Green(state.promptName)))
 
 	case "/copy", "/c":
 		if state.lastResponse == "" {
-			fmt.Println("No response to copy")
+			fmt.Println(output.Yellow("No response to copy"))
 			return false
 		}
 		if warning := clipboard.CopyWithWarning(state.lastResponse); warning != "" {
-			fmt.Fprintln(os.Stderr, warning)
+			fmt.Fprintln(os.Stderr, output.Yellow(warning))
 		} else {
-			fmt.Println("✓ Copied to clipboard")
+			fmt.Println(output.CopiedMessage())
 		}
 
 	default:
-		fmt.Printf("Unknown command: %s (type /help for help)\n", command)
+		fmt.Printf("Unknown command: %s (type %s for help)\n", output.Red(command), output.Bold(output.Green("/help")))
 	}
 
 	return false
@@ -217,15 +249,18 @@ func handleSlashCommand(line string, state *replState) bool {
 
 func printHelp() {
 	fmt.Println("\nAvailable commands:")
-	fmt.Println("  /length <short|medium|long>  - Change output length")
-	fmt.Println("  /model <alias>               - Switch model")
-	fmt.Println("  /prompt <name>               - Switch prompt template")
-	fmt.Println("  /copy                        - Copy last response to clipboard")
-	fmt.Println("  /help                        - Show this help")
-	fmt.Println("  /quit or /exit               - Exit REPL")
+	fmt.Printf("  %s                       - Show current length and list of available lengths\n", output.Cyan("/length"))
+	fmt.Printf("  %s [name]                - Change output length to provided length\n", output.Cyan("/length"))
+	fmt.Printf("  %s                        - Show current model and list of available models\n", output.Cyan("/model"))
+	fmt.Printf("  %s [name]                 - Switch model to provided model\n", output.Cyan("/model"))
+	fmt.Printf("  %s                         - Copy last response to clipboard\n", output.Cyan("/copy"))
+	fmt.Printf("  %s                       - Show current prompt and list of available prompts\n", output.Cyan("/prompt"))
+	fmt.Printf("  %s [name]                - Switch prompt template to provided prompt\n", output.Cyan("/prompt"))
+	fmt.Printf("  %s                         - Show this help\n", output.Cyan("/help"))
+	fmt.Printf("  %s                - Exit REPL\n", output.Red("/quit or /exit"))
 	fmt.Println("\nKeyboard shortcuts:")
-	fmt.Println("  Ctrl+C  - Cancel current generation")
-	fmt.Println("  Ctrl+D  - Exit REPL")
+	fmt.Printf("  %s  - Cancel current generation\n", output.BoldYellow("Ctrl+C"))
+	fmt.Printf("  %s  - Exit REPL\n", output.BoldRed("Ctrl+D"))
 	fmt.Println()
 }
 
@@ -251,14 +286,19 @@ func generateStreaming(input string, state *replState) error {
 	// Reset last response
 	state.lastResponse = ""
 	var responseBuilder strings.Builder
+	colorizer := output.NewStreamingColorizer()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
+	// Show progress indicator
+	fmt.Fprintln(os.Stderr, output.GeneratingMessage())
+
 	// Stream response
 	fmt.Println() // New line before output
 	err = state.client.StreamComplete(ctx, req, func(token string) error {
-		fmt.Print(token)
+		colorizedToken := colorizer.ProcessToken(token)
+		fmt.Print(colorizedToken)
 		responseBuilder.WriteString(token)
 		return nil
 	})
@@ -266,6 +306,10 @@ func generateStreaming(input string, state *replState) error {
 	if err != nil {
 		fmt.Println() // Ensure newline after error
 		return fmt.Errorf("streaming failed: %w", err)
+	}
+
+	if trailing := colorizer.Finalize(); trailing != "" {
+		fmt.Print(trailing)
 	}
 
 	// Store response
@@ -279,7 +323,7 @@ func generateStreaming(input string, state *replState) error {
 		if warning := clipboard.CopyWithWarning(state.lastResponse); warning != "" {
 			fmt.Fprintln(os.Stderr, warning)
 		} else {
-			fmt.Fprintln(os.Stderr, "✓ Copied to clipboard")
+			fmt.Fprintln(os.Stderr, output.CopiedMessage())
 		}
 	}
 
