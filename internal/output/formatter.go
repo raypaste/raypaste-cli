@@ -187,6 +187,11 @@ func (sc *StreamingColorizer) Finalize() string {
 	return remaining
 }
 
+// ReadingInputMessage returns a colored "Reading input..." message
+func ReadingInputMessage() string {
+	return lightBlue("Reading input...")
+}
+
 // GeneratingMessage returns a colored "Generating..." message
 func GeneratingMessage() string {
 	return lightBlue("Generating...")

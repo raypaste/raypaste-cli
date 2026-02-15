@@ -89,7 +89,13 @@ func (c *Client) Complete(ctx context.Context, req types.CompletionRequest) (str
 	return completionResp.Choices[0].Message.Content, nil
 }
 
-// StreamComplete sends a streaming completion request and calls the callback for each token
+// StreamComplete sends a streaming completion request and calls the callback for each token.
+//
+// The provided context controls the request lifetime — cancelling it aborts the
+// connection immediately, which triggers OpenRouter's stream cancellation and stops
+// billing for supported providers (including Cerebras).
+//
+// See: https://openrouter.ai/docs/api/reference/streaming#stream-cancellation
 func (c *Client) StreamComplete(ctx context.Context, req types.CompletionRequest, callback func(string) error) error {
 	// Ensure stream is true
 	req.Stream = true
@@ -114,12 +120,30 @@ func (c *Client) StreamComplete(ctx context.Context, req types.CompletionRequest
 	// Set headers
 	c.setHeaders(httpReq)
 
+	// Use a client without a blanket timeout for streaming.
+	// The context controls cancellation; a client-level Timeout would kill
+	// long streams that legitimately take longer than the default timeout.
+	streamClient := &http.Client{}
+
 	// Send request (no retry for streaming)
-	resp, err := c.httpClient.Do(httpReq)
+	resp, err := streamClient.Do(httpReq)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}
+
+	// Close the response body promptly on context cancellation.
+	// This aborts the TCP connection, which is how OpenRouter detects stream
+	// cancellation and stops model processing / billing.
+	done := make(chan struct{})
+	go func() {
+		select {
+		case <-ctx.Done():
+			_ = resp.Body.Close()
+		case <-done:
+		}
+	}()
 	defer func() {
+		close(done)
 		_ = resp.Body.Close()
 	}()
 
