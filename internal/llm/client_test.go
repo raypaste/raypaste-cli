@@ -13,7 +13,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"raypaste-cli/pkg/types"
+	"github.com/raypaste/raypaste-cli/pkg/types"
 )
 
 // TestGetBodySetForRetry verifies that GetBody is set to allow request body recreation during retries.

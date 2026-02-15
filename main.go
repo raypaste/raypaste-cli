@@ -3,7 +3,7 @@ Copyright © 2026 Raypaste
 */
 package main
 
-import "raypaste-cli/cmd"
+import "github.com/raypaste/raypaste-cli/cmd"
 
 func main() {
 	cmd.Execute()

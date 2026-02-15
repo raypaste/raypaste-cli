@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"raypaste-cli/pkg/types"
+	"github.com/raypaste/raypaste-cli/pkg/types"
 
 	"github.com/spf13/viper"
 )

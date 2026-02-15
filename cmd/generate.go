@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"raypaste-cli/internal/clipboard"
-	"raypaste-cli/internal/config"
-	"raypaste-cli/internal/llm"
-	"raypaste-cli/internal/output"
-	"raypaste-cli/internal/prompts"
+	"github.com/raypaste/raypaste-cli/internal/clipboard"
+	"github.com/raypaste/raypaste-cli/internal/config"
+	"github.com/raypaste/raypaste-cli/internal/llm"
+	"github.com/raypaste/raypaste-cli/internal/output"
+	"github.com/raypaste/raypaste-cli/internal/prompts"
 
 	"github.com/spf13/cobra"
 )
