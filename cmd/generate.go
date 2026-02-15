@@ -31,7 +31,7 @@ The generate command takes your input (from arguments or stdin) and generates
 an optimized prompt using the specified model and output length.
 
 ` + output.Bold("Examples:") + `
-  raypaste generate "help me write a blog post" ` + output.Green("--length short --copy") + `
+  raypaste generate "help me write a blog post" ` + output.Green("--length short") + `
   raypaste gen "analyze CSV data" ` + output.Green("-l long") + `
   echo "my goal" | raypaste gen
   raypaste g "create a REST API" ` + output.Green("-m cerebras-llama-8b"),
@@ -105,8 +105,8 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	// Print result to stdout (colorize if markdown)
 	fmt.Println(output.ColorizeMarkdown(result))
 
-	// Copy to clipboard if requested
-	shouldCopy := copyFlag || cfg.AutoCopy
+	// Copy to clipboard by default unless disabled
+	shouldCopy := !noCopyFlag && !cfg.DisableCopy
 	if shouldCopy {
 		if warning := clipboard.CopyWithWarning(result); warning != "" {
 			fmt.Fprintln(os.Stderr, warning)

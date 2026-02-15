@@ -18,7 +18,7 @@ var (
 	modelFlag  string
 	lengthFlag string
 	promptFlag string
-	copyFlag   bool
+	noCopyFlag bool
 	cfg        *config.Config
 )
 
@@ -32,7 +32,7 @@ A Cobra-based CLI that generates meta-prompts and general AI completions via Ope
 with configurable output lengths and fast/small model routing.
 
 ` + output.Bold("Examples:") + `
-  raypaste generate "help me write a blog post" ` + output.Green("--length short --copy") + `
+  raypaste generate "help me write a blog post" ` + output.Green("--length short") + `
   raypaste gen "analyze CSV data" ` + output.Green("-l long") + `
   echo "my goal" | raypaste gen
   raypaste interactive`,
@@ -55,7 +55,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&modelFlag, "model", "m", "", "Model alias or OpenRouter ID")
 	rootCmd.PersistentFlags().StringVarP(&lengthFlag, "length", "l", "medium", "Output length: short|medium|long")
 	rootCmd.PersistentFlags().StringVarP(&promptFlag, "prompt", "p", "metaprompt", "Prompt template name")
-	rootCmd.PersistentFlags().BoolVarP(&copyFlag, "copy", "c", false, "Auto-copy result to clipboard")
+	rootCmd.PersistentFlags().BoolVar(&noCopyFlag, "no-copy", false, "Disable auto-copy to clipboard")
 }
 
 // initConfig reads in config file and ENV variables if set

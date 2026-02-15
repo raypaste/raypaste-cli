@@ -10,8 +10,9 @@ default_model: cerebras-llama-8b
 # Default output length: short, medium, or long
 default_length: medium
 
-# Automatically copy results to clipboard
-auto_copy: false
+# Disable automatic copying of results to clipboard
+# By default, results are copied to clipboard. Set to true to disable.
+disable_copy: false
 
 # Temperature for LLM generation (0.0 to 1.0)
 # Lower values are more deterministic, higher values are more creative

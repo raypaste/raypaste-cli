@@ -18,7 +18,8 @@ type Config struct {
 	APIKey        string             `mapstructure:"api_key"`
 	DefaultModel  string             `mapstructure:"default_model"`
 	DefaultLength types.OutputLength `mapstructure:"default_length"`
-	AutoCopy      bool               `mapstructure:"auto_copy"`
+	AutoCopy      bool               `mapstructure:"auto_copy"`    // Deprecated: kept for backward compatibility
+	DisableCopy   bool               `mapstructure:"disable_copy"` // New field to disable clipboard copying
 	Models        map[string]Model   `mapstructure:"models"`
 	Temperature   float64            `mapstructure:"temperature"`
 }
@@ -32,7 +33,8 @@ func LoadConfig(configPath string) (*Config, error) {
 	// Set defaults
 	v.SetDefault("default_model", "cerebras-llama-8b")
 	v.SetDefault("default_length", "medium")
-	v.SetDefault("auto_copy", false)
+	v.SetDefault("auto_copy", false)    // Deprecated: kept for backward compatibility
+	v.SetDefault("disable_copy", false) // Default: clipboard copying is enabled
 	v.SetDefault("temperature", 0.7)
 
 	// Set config name and paths
@@ -71,6 +73,7 @@ func LoadConfig(configPath string) (*Config, error) {
 	_ = v.BindEnv("api_key", "RAYPASTE_API_KEY")
 	_ = v.BindEnv("default_model", "RAYPASTE_DEFAULT_MODEL")
 	_ = v.BindEnv("default_length", "RAYPASTE_DEFAULT_LENGTH")
+	_ = v.BindEnv("disable_copy", "RAYPASTE_DISABLE_COPY")
 
 	// Read config file (ignore if not found)
 	if err := v.ReadInConfig(); err != nil {
@@ -105,6 +108,7 @@ func GetConfig() *Config {
 				DefaultModel:  "cerebras-llama-8b",
 				DefaultLength: types.OutputLengthMedium,
 				AutoCopy:      false,
+				DisableCopy:   false,
 				Temperature:   0.7,
 				Models:        make(map[string]Model),
 			}
