@@ -39,6 +39,13 @@ sudo mv raypaste /usr/local/bin/
 go install github.com/raypaste/raypaste-cli@latest
 ```
 
+### Using Homebrew (macOS)
+
+```bash
+brew tap raypaste/tap
+brew install --cask raypaste
+```
+
 ## Quick Start
 
 1. **Get an OpenRouter API key** from [https://openrouter.ai/keys](https://openrouter.ai/keys)

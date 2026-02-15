@@ -1,0 +1,65 @@
+# GoReleaser config for raypaste-cli
+# https://goreleaser.com
+
+version: 2
+
+builds:
+  - id: raypaste
+    main: .
+    binary: raypaste
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+
+archives:
+  - id: default
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: >-
+      {{ .ProjectName }}_
+      {{ .Version }}_
+      {{ .Os }}_
+      {{ .Arch }}
+      {{ if .Arm }}v{{ .Arm }}{{ end }}
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  disable: true
+  # We pass release notes via --release-notes from CHANGELOG.md
+
+release:
+  github:
+    owner: raypaste
+    name: raypaste-cli
+  draft: false
+  name_template: "{{ .Tag }}"
+
+homebrew_casks:
+  - name: raypaste
+    # Skip Homebrew publish when HOMEBREW_TAP_TOKEN is not set (tap not configured yet)
+    skip_upload: "{{ not .Env.HOMEBREW_TAP_TOKEN }}"
+    repository:
+      owner: raypaste
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: https://github.com/raypaste/raypaste-cli
+    description: Ultra-fast AI-optimized meta prompts from your input text in your terminal
+    url:
+      verified: github.com/raypaste/raypaste-cli/releases/download
+    # Remove quarantine bit for unsigned binary (avoids "damaged" alert on macOS)
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/raypaste"]
+          end
