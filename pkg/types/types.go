@@ -62,11 +62,21 @@ type StreamChoice struct {
 	FinishReason string `json:"finish_reason,omitempty"`
 }
 
-// StreamChunk represents a streaming response chunk from OpenRouter
+// StreamChunk represents a streaming response chunk from OpenRouter.
+// When a mid-stream error occurs, OpenRouter sends a chunk with an Error field
+// and finish_reason "error" in the choices array.
+// See: https://openrouter.ai/docs/api/reference/streaming#handling-errors-during-streaming
 type StreamChunk struct {
 	ID      string         `json:"id"`
 	Model   string         `json:"model"`
 	Choices []StreamChoice `json:"choices"`
+	Error   *StreamError   `json:"error,omitempty"`
+}
+
+// StreamError represents an error delivered mid-stream via SSE from OpenRouter.
+type StreamError struct {
+	Code    interface{} `json:"code"` // may be int or string depending on error type
+	Message string      `json:"message"`
 }
 
 // APIError represents an error from the OpenRouter API
