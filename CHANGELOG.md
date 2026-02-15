@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-02-14
+
+### Fixed
+- Fixed interactive mode breaking when pasting long multi-line inputs by implementing proper input buffering and detection
+- Stream cancellation now properly handled with context cancellation triggering TCP connection close for immediate API billing stop
+- Improved timeout handling: moved context deadline from request level to generation level for better control of long-running streams
+- Added mid-stream error detection from OpenRouter API, now properly catches error chunks and finish_reason indicators
+- SSE comment lines (starting with `:`) now properly ignored per SSE specification
+
+### Changed
+- Updated metaprompt to avoid assumptions on technology specifics - no longer adds tech constraints unless explicitly mentioned in user input
+- Enhanced interactive mode prompt handling with input validation and visual feedback improvements
+- Improved stream handling with drain mechanism for buffered lines during cancellation
+- Added context support to streaming generation with 120-second timeout
+
 ## [0.1.1] - 2026-02-14
 
 ### Added
@@ -46,5 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Flexible Configuration**: Multiple configuration methods
 - **Model Flexibility**: Use built-in aliases or any OpenRouter model ID
 
+[0.1.2]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.1.2
 [0.1.1]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.1.1
 [0.1.0]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.1.0
