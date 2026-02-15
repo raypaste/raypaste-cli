@@ -18,13 +18,25 @@ A powerful [Cobra](https://cobra.dev/)-based CLI that generates meta-prompts and
 
 ## Installation
 
+### Using Homebrew (macOS)
+
+```bash
+brew tap raypaste/tap
+brew install --cask raypaste
+```
+
+### Using Go Install
+
+````bash
+go install github.com/raypaste/raypaste-cli@latest
+
 ### From Source
 
 ```bash
 git clone https://github.com/raypaste/raypaste-cli.git
 cd raypaste-cli
 ./build
-```
+````
 
 Or manually:
 
@@ -33,11 +45,7 @@ go build -o raypaste
 sudo mv raypaste /usr/local/bin/
 ```
 
-### Using Go Install
-
-```bash
-go install github.com/raypaste/raypaste-cli@latest
-```
+````
 
 ## Quick Start
 
@@ -49,30 +57,30 @@ go install github.com/raypaste/raypaste-cli@latest
 
    ```bash
    export RAYPASTE_API_KEY=your_api_key_here
-   ```
+````
 
-   To make it permanent, add to your shell config:
+To make it permanent, add to your shell config:
 
-   ```bash
-   # For zsh (macOS default)
-   echo 'export RAYPASTE_API_KEY=your_api_key_here' >> ~/.zshrc
-   source ~/.zshrc
+```bash
+# For zsh (macOS default)
+echo 'export RAYPASTE_API_KEY=your_api_key_here' >> ~/.zshrc
+source ~/.zshrc
 
-   # For bash
-   echo 'export RAYPASTE_API_KEY=your_api_key_here' >> ~/.bashrc
-   source ~/.bashrc
-   ```
+# For bash
+echo 'export RAYPASTE_API_KEY=your_api_key_here' >> ~/.bashrc
+source ~/.bashrc
+```
 
-   **Option B: Config File**
+**Option B: Config File**
 
-   ```bash
-   mkdir -p ~/.raypaste
-   cp config.yaml.example ~/.raypaste/config.yaml
-   # Edit ~/.raypaste/config.yaml and add your API ke
-   nano ~/.raypaste/config.yaml
-   ```
+```bash
+mkdir -p ~/.raypaste
+cp config.yaml.example ~/.raypaste/config.yaml
+# Edit ~/.raypaste/config.yaml and add your API ke
+nano ~/.raypaste/config.yaml
+```
 
-   **Note**: The `.env` file in the project directory is for reference only. Go programs don't automatically load `.env` files. You must either export the environment variable or use the config file at `~/.raypaste/config.yaml`.
+**Note**: The `.env` file in the project directory is for reference only. Go programs don't automatically load `.env` files. You must either export the environment variable or use the config file at `~/.raypaste/config.yaml`.
 
 3. **Generate your first prompt**:
 
@@ -88,13 +96,13 @@ Generate an optimized prompt from your input (one-shot mode):
 
 ```bash
 # Basic usage
-raypaste generate "create a REST API for a todo app"
+raypaste generate "update raypaste to support colors in generate and interactive CLI"
 
 # Short alias
-raypaste gen "analyze CSV data"
+raypaste gen "I need to refactor cmd/interactive.go to have helper functions in internal package folder."
 
 # With flags
-raypaste gen "write a blog post" --length long --copy
+raypaste gen "write a blog post about metaprompts" --length long --copy
 
 # From stdin
 echo "my goal" | raypaste gen
