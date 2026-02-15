@@ -1,20 +1,16 @@
 # raypaste-cli
 
-Ultra-fast AI-optimized meta prompts from your input text in your terminal.
+### Open-source ultra-fast AI completions right in your terminal.
 
-A powerful [Cobra](https://cobra.dev/)-based CLI that generates meta-prompts and AI completions via OpenRouter, with configurable output lengths, fast model routing, and interactive REPL mode with streaming.
-
-## Features
+A lightning fast Go CLI for generating meta-prompts and AI completions via [OpenRouter](https://openrouter.ai/), with fast model routing, configurable output lengths, customizable prompts, and interactive REPL mode with streaming.
 
 - **Fast Generation**: Generate optimized prompts in milliseconds using fast inference from small models running on
   hardware from Cerebras.
-- **Multiple Output Lengths**: Choose between short, medium, or long responses
 - **Interactive Mode**: REPL with streaming output and slash commands
 - **Clipboard Integration**: Auto-copy results to clipboard
 - **Custom Prompts**: Create and manage your own prompt templates
 - **Flexible Configuration**: Configure via YAML, environment variables, or CLI flags
 - **OpenRouter Integration**: Access to multiple LLM providers through a single API
-- **Colored Output**: Automatic markdown detection with colored status messages for better readability
 
 ## Installation
 
@@ -27,8 +23,9 @@ brew install --cask raypaste
 
 ### Using Go Install
 
-````bash
+```bash
 go install github.com/raypaste/raypaste-cli@latest
+```
 
 ### From Source
 
@@ -36,7 +33,7 @@ go install github.com/raypaste/raypaste-cli@latest
 git clone https://github.com/raypaste/raypaste-cli.git
 cd raypaste-cli
 ./build
-````
+```
 
 Or manually:
 
@@ -144,29 +141,6 @@ raypaste i
 
 - `Ctrl+C` - Cancel current generation
 - `Ctrl+D` - Exit REPL
-
-**Example Session:**
-
-```
-raypaste interactive mode
-Model: cerebras-llama-8b | Length: medium | Prompt: metaprompt
-Type /help for commands, /quit to exit
-
-> create a function to parse JSON
-[streaming output appears here...]
-
-> /length short
-Length set to: short
-
-> optimize the above for performance
-[shorter streaming output...]
-
-> /copy
-✓ Copied to clipboard
-
-> /quit
-Goodbye!
-```
 
 ## Configuration
 
@@ -358,31 +332,6 @@ raypaste gen "review my API code" -p code-review
 ### Template Variables
 
 - `{{.LengthDirective}}` - Automatically replaced with length-specific guidance
-
-## Examples
-
-### Generate a Blog Post Outline
-
-```bash
-raypaste gen "write a blog post about microservices architecture" -l long
-```
-
-### Quick Code Snippet
-
-```bash
-raypaste gen "function to validate email addresses" -l short
-```
-
-### Interactive Brainstorming
-
-```bash
-raypaste i
-> brainstorm features for a todo app
-> /length long
-> expand on the collaboration features
-> /copy
-> /quit
-```
 
 ### Pipeline with Other Tools
 
