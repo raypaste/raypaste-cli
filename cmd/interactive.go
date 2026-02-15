@@ -136,7 +136,7 @@ func runInteractive(cmd *cobra.Command, args []string) error {
 			if result.err == readline.ErrInterrupt {
 				// ^C while waiting for input — show new prompt and continue
 				drainLines(lineCh)
-				fmt.Fprint(os.Stdout, "> ")
+				_, _ = fmt.Fprint(os.Stdout, "> ")
 				continue
 			} else if result.err == io.EOF {
 				break
@@ -147,7 +147,7 @@ func runInteractive(cmd *cobra.Command, args []string) error {
 		line := strings.TrimSpace(result.line)
 		if line == "" {
 			// Empty line — show prompt and continue
-			fmt.Fprint(os.Stdout, "> ")
+			_, _ = fmt.Fprint(os.Stdout, "> ")
 			continue
 		}
 
@@ -161,7 +161,7 @@ func runInteractive(cmd *cobra.Command, args []string) error {
 			if shouldExit := handleSlashCommand(fullInput, state); shouldExit {
 				break
 			}
-			fmt.Fprint(os.Stdout, "> ")
+			_, _ = fmt.Fprint(os.Stdout, "> ")
 			continue
 		}
 
@@ -180,7 +180,7 @@ func runInteractive(cmd *cobra.Command, args []string) error {
 		// Print the prompt to signal readiness for next input.
 		// Since readline runs in a goroutine and we're reading from a channel,
 		// we must explicitly print the prompt to provide visual feedback.
-		fmt.Fprint(os.Stdout, "> ")
+		_, _ = fmt.Fprint(os.Stdout, "> ")
 	}
 
 	fmt.Println(output.Bold(output.Green("\nGoodbye!")))
