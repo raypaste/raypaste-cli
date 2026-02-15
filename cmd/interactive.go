@@ -448,8 +448,9 @@ func generateStreaming(ctx context.Context, input string, state *replState) erro
 	fmt.Println() // New line after output
 	fmt.Println() // Extra line for spacing
 
-	// Auto-copy if enabled
-	if cfg.AutoCopy {
+	// Auto-copy by default unless disabled
+	shouldCopy := !noCopyFlag && !cfg.DisableCopy
+	if shouldCopy {
 		if warning := clipboard.CopyWithWarning(state.lastResponse); warning != "" {
 			fmt.Fprintln(os.Stderr, warning)
 		} else {

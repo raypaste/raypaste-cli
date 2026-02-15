@@ -45,48 +45,50 @@ go build -o raypaste
 sudo mv raypaste /usr/local/bin/
 ```
 
-````
+---
 
 ## Quick Start
 
-1. **Get an OpenRouter API key** from [https://openrouter.ai/keys](https://openrouter.ai/keys)
+1. **Get an OpenRouter API key** from **[openrouter.ai/keys](https://openrouter.ai/keys)**
 
-2. **Set your API key** (choose one method):
+   1a. (optional): Get a **Cerebras** key from **[cerebras.ai](https://www.cerebras.ai)** to set up in _OpenRouter > Settings > BYOK (bring your own key) > Cerebras API key_.
+
+2. **Set your API key for Raypaste** (choose one method):
 
    **Option A: Environment Variable (Recommended for quick start)**
 
    ```bash
    export RAYPASTE_API_KEY=your_api_key_here
-````
+   ```
 
-To make it permanent, add to your shell config:
+   To make it permanent, add to your shell config:
 
-```bash
-# For zsh (macOS default)
-echo 'export RAYPASTE_API_KEY=your_api_key_here' >> ~/.zshrc
-source ~/.zshrc
+   ```bash
+   # For zsh (macOS default)
+   echo 'export RAYPASTE_API_KEY=your_api_key_here' >> ~/.zshrc
+   source ~/.zshrc
 
-# For bash
-echo 'export RAYPASTE_API_KEY=your_api_key_here' >> ~/.bashrc
-source ~/.bashrc
-```
+   # For bash
+   echo 'export RAYPASTE_API_KEY=your_api_key_here' >> ~/.bashrc
+   source ~/.bashrc
+   ```
 
-**Option B: Config File**
+   **Option B: Config File**
 
-```bash
-mkdir -p ~/.raypaste
-cp config.yaml.example ~/.raypaste/config.yaml
-# Edit ~/.raypaste/config.yaml and add your API ke
-nano ~/.raypaste/config.yaml
-```
+   ```bash
+   mkdir -p ~/.raypaste
+   cp config.yaml.example ~/.raypaste/config.yaml
+   # Edit ~/.raypaste/config.yaml and add your API ke
+   nano ~/.raypaste/config.yaml
+   ```
 
-**Note**: The `.env` file in the project directory is for reference only. Go programs don't automatically load `.env` files. You must either export the environment variable or use the config file at `~/.raypaste/config.yaml`.
+   **Note**: The `.env` file in the project directory is for reference only. Go programs don't automatically load `.env` files. You must either export the environment variable or use the config file at `~/.raypaste/config.yaml`.
 
 3. **Generate your first prompt**:
 
-```bash
-raypaste generate "help me write a blog post about Go"
-```
+   ```bash
+   raypaste generate "help me write a blog post about Go CLI projects for social media platforms like reddit and linkedin"
+   ```
 
 ## Usage
 
@@ -102,7 +104,7 @@ raypaste generate "update raypaste to support colors in generate and interactive
 raypaste gen "I need to refactor cmd/interactive.go to have helper functions in internal package folder."
 
 # With flags
-raypaste gen "write a blog post about metaprompts" --length long --copy
+raypaste gen "write a blog post about metaprompts" --length long
 
 # From stdin
 echo "my goal" | raypaste gen
@@ -116,7 +118,7 @@ raypaste gen "optimize this code" -m cerebras-gpt-oss-120b
 - `-l, --length`: Output length (short, medium, long) - default: medium
 - `-m, --model`: Model alias or OpenRouter ID - default: cerebras-llama-8b
 - `-p, --prompt`: Prompt template name - default: metaprompt
-- `-c, --copy`: Auto-copy result to clipboard
+- `--no-copy`: Disable auto-copy to clipboard (copying is enabled by default)
 - `--config`: Custom config file path
 
 ### Interactive Mode
@@ -191,8 +193,8 @@ default_model: cerebras-llama-8b
 # Default output length: short, medium, or long
 default_length: medium
 
-# Auto-copy results to clipboard
-auto_copy: false
+# Disable auto-copy to clipboard (copying is enabled by default)
+disable_copy: false
 
 # Temperature for generation (0.0 to 1.0)
 temperature: 0.7
@@ -362,7 +364,7 @@ raypaste gen "review my API code" -p code-review
 ### Generate a Blog Post Outline
 
 ```bash
-raypaste gen "write a blog post about microservices architecture" -l long -c
+raypaste gen "write a blog post about microservices architecture" -l long
 ```
 
 ### Quick Code Snippet
@@ -511,29 +513,6 @@ go fmt ./...
 
 The linter is configured in `.golangci.yml` and will be run automatically by GitHub Actions on pull requests. Running it locally before pushing ensures CI passes on first try.
 
-**GitHub Actions Workflows:**
-
-- `.github/workflows/go-test.yml` - Runs tests and coverage reporting
-- `.github/workflows/go-lint.yml` - Runs linter on all changes
-
-### Project Structure
-
-```
-.
-├── cmd/                 # Cobra commands
-│   ├── root.go          # Root command & config
-│   ├── generate.go      # Generate command
-│   └── interactive.go   # Interactive REPL
-├── internal/
-│   ├── config/          # Configuration management
-│   ├── llm/             # OpenRouter client
-│   ├── prompts/         # Prompt store & templates
-│   └── clipboard/       # Clipboard operations
-├── pkg/
-│   └── types/           # Shared types
-└── main.go              # Entry point
-```
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -546,6 +525,7 @@ See [LICENSE](LICENSE) file for details.
 
 - Built with [Cobra](https://github.com/spf13/cobra) for CLI framework
 - Uses [OpenRouter](https://openrouter.ai/) for LLM access
+- Default model provider [Cerebras](https://www.cerebras.ai/) for fast inference
 - Powered by [Viper](https://github.com/spf13/viper) for configuration
 - Clipboard support via [golang.design/x/clipboard](https://golang.design/x/clipboard)
 - Interactive mode with [readline](https://github.com/chzyer/readline)
