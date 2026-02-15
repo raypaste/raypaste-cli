@@ -10,7 +10,7 @@ import (
 	"io"
 	"strings"
 
-	"raypaste-cli/pkg/types"
+	"github.com/raypaste/raypaste-cli/pkg/types"
 )
 
 // processStreamingResponse processes Server-Sent Events (SSE) from the streaming response

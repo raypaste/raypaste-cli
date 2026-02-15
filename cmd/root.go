@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"os"
 
-	"raypaste-cli/internal/config"
-	"raypaste-cli/internal/output"
+	"github.com/raypaste/raypaste-cli/internal/config"
+	"github.com/raypaste/raypaste-cli/internal/output"
 
 	"github.com/spf13/cobra"
 )

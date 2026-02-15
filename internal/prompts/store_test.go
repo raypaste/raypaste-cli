@@ -6,7 +6,7 @@ package prompts
 import (
 	"testing"
 
-	"raypaste-cli/pkg/types"
+	"github.com/raypaste/raypaste-cli/pkg/types"
 )
 
 func TestNewStore(t *testing.T) {

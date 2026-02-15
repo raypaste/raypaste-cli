@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"time"
 
-	"raypaste-cli/pkg/types"
+	"github.com/raypaste/raypaste-cli/pkg/types"
 )
 
 const (

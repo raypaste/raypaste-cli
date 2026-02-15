@@ -6,8 +6,8 @@ package llm
 import (
 	"fmt"
 
-	"raypaste-cli/internal/config"
-	"raypaste-cli/pkg/types"
+	"github.com/raypaste/raypaste-cli/internal/config"
+	"github.com/raypaste/raypaste-cli/pkg/types"
 )
 
 // LengthParams maps output lengths to their parameters

@@ -1,4 +1,4 @@
-module raypaste-cli
+module github.com/raypaste/raypaste-cli
 
 go 1.25.0
 
@@ -6,6 +6,7 @@ tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 
 require (
 	github.com/chzyer/readline v1.5.1
+	github.com/fatih/color v1.18.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	golang.design/x/clipboard v0.7.1
@@ -67,7 +68,6 @@ require (
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/ettle/strcase v0.2.0 // indirect
-	github.com/fatih/color v1.18.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/firefart/nonamedreturns v1.0.6 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect

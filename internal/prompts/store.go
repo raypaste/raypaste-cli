@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"raypaste-cli/internal/config"
-	"raypaste-cli/internal/llm"
-	"raypaste-cli/internal/prompts/defaults"
-	"raypaste-cli/pkg/types"
+	"github.com/raypaste/raypaste-cli/internal/config"
+	"github.com/raypaste/raypaste-cli/internal/llm"
+	"github.com/raypaste/raypaste-cli/internal/prompts/defaults"
+	"github.com/raypaste/raypaste-cli/pkg/types"
 
 	"gopkg.in/yaml.v3"
 )
