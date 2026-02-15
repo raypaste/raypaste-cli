@@ -48,3 +48,6 @@ Thumbs.db
 
 # Patch files
 *.patch
+
+# Release artifacts
+release_notes.md
