@@ -4,16 +4,41 @@
 version: 2
 
 builds:
-  - id: raypaste
+  - id: darwin
+    main: .
+    binary: raypaste
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=1
+    ldflags:
+      - -s -w
+
+  - id: linux
     main: .
     binary: raypaste
     goos:
       - linux
-      - darwin
-      - windows
     goarch:
       - amd64
       - arm64
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+
+  - id: windows
+    main: .
+    binary: raypaste
+    goos:
+      - windows
+    goarch:
+      - amd64
+    env:
+      - CGO_ENABLED=0
     ldflags:
       - -s -w
 

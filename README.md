@@ -376,10 +376,26 @@ Error: API key not found. Set RAYPASTE_API_KEY environment variable or add to co
 ### Clipboard Not Working
 
 ```
-Warning: Could not copy to clipboard: ...
+Warning: Could not copy to clipboard: failed to initialize clipboard: clipboard: cannot use when CGO_ENABLED=0
 ```
 
-**Solution**: The clipboard feature requires a display server. On headless systems, the warning is informational only and doesn't affect functionality.
+**Root Cause**: The clipboard library (`golang.design/x/clipboard`) requires CGO (C bindings) to access system clipboard APIs on macOS, Linux, and Windows. When binaries are cross-compiled with `CGO_ENABLED=0`, the clipboard feature fails at runtime.
+
+**Solution**: We've fixed the build pipeline to compile on native platforms:
+- **macOS binaries** are now built on `macos-latest` runners with `CGO_ENABLED=1`
+- **Linux binaries** are built on `ubuntu-latest` (clipboard may not work on Linux arm64 cross-compilation; use `xclip` or `xsel` if installed)
+- **Windows binaries** are built on `ubuntu-latest` (clipboard may not work; requires CGO cross-compilation setup)
+
+**If you're still experiencing this issue**:
+1. Make sure you're using the latest version: `brew upgrade raypaste` (macOS) or reinstall from the latest release
+2. On macOS, ensure `pbcopy` is available (built-in utility)
+3. Use `--no-copy` flag to disable clipboard and bypass the warning: `raypaste gen "text" --no-copy`
+4. On headless/SSH systems, the warning is informational only and doesn't affect functionality
+
+**For developers building from source**: Ensure `CGO_ENABLED=1` when building for your platform:
+```bash
+CGO_ENABLED=1 go build -o raypaste
+```
 
 ### Model Not Found
 
