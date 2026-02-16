@@ -7,7 +7,7 @@ alwaysApply: true
 
 ## Architecture Overview
 
-**CLI Tool**: Cobra-based CLI for generating AI-optimized prompts via OpenRouter API
+**CLI Tool**: Cobra-based CLI for generating AI-optimized prompts via OpenRouter API with automatic project context awareness
 
 **Key Packages**:
 
@@ -15,6 +15,7 @@ alwaysApply: true
 - `internal/config/` - Viper config + model registry
 - `internal/llm/` - OpenRouter client with streaming
 - `internal/prompts/` - Prompt templates + store
+- `internal/projectcontext/` - Project context detection and loading
 - `internal/clipboard/` - Cross-platform clipboard ops
 - `pkg/types/` - Shared types
 
@@ -31,6 +32,8 @@ alwaysApply: true
 **Config Hierarchy**: CLI flags → env vars (`RAYPASTE_*`) → `~/.raypaste/config.yaml` → defaults
 
 **Streaming**: SSE parsing for interactive mode, non-streaming for generate command
+
+**Project Context Awareness**: Automatically discovers and loads context from `.cursor/rules/`, `CLAUDE.md`, or `AGENTS.md` files (in priority order). Context is injected into the system prompt via `{{.Context}}` template variable, allowing generated prompts to be aware of project conventions and architecture.
 
 ## Code Patterns
 
@@ -61,6 +64,7 @@ model := cfg.GetDefaultModel()  // Falls back to "cerebras-llama-8b"
 store, _ := prompts.NewStore()
 systemPrompt, _ := store.Render("metaprompt", types.OutputLengthMedium)
 // Template {{.LengthDirective}} auto-replaced
+// Template {{.Context}} auto-replaced with project context (if found)
 ```
 
 **Code Styling**:

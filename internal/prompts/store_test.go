@@ -73,7 +73,7 @@ func TestStoreRender(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := store.Render(tt.prompt, tt.length)
+			got, err := store.Render(tt.prompt, tt.length, "")
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Store.Render() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -130,7 +130,7 @@ func TestBulletListPrompt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := store.Render("bulletlist", tt.length)
+			got, err := store.Render("bulletlist", tt.length, "")
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Store.Render(bulletlist, %s) error = %v, wantErr %v", tt.length, err, tt.wantErr)
 				return

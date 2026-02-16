@@ -10,8 +10,16 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
+# Version info
+VERSION="${VERSION:-dev}"
+GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
 echo "Building raypaste-cli..."
-go build -o raypaste
+go build -ldflags "-X github.com/raypaste/raypaste-cli/cmd.Version=${VERSION} \
+                   -X github.com/raypaste/raypaste-cli/cmd.GitCommit=${GIT_COMMIT} \
+                   -X github.com/raypaste/raypaste-cli/cmd.BuildDate=${BUILD_DATE}" \
+         -o raypaste
 
 if [ ! -f raypaste ]; then
     echo -e "${RED}Error: Build failed - raypaste binary not found${NC}"

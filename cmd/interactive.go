@@ -15,6 +15,7 @@ import (
 	"github.com/raypaste/raypaste-cli/internal/config"
 	"github.com/raypaste/raypaste-cli/internal/llm"
 	"github.com/raypaste/raypaste-cli/internal/output"
+	"github.com/raypaste/raypaste-cli/internal/projectcontext"
 	"github.com/raypaste/raypaste-cli/internal/prompts"
 	"github.com/raypaste/raypaste-cli/pkg/types"
 
@@ -33,6 +34,7 @@ The interactive mode provides a REPL (Read-Eval-Print Loop) where you can
 continuously generate prompts with streaming output.
 
 ` + output.Bold("Slash commands:") + `
+  ` + output.Green("/clear") + `                        - Clear the screen
   ` + output.Green("/length") + `                       - Show current length and list of available lengths
   ` + output.Green("/length [name]") + `                - Change output length to provided length
 	` + output.Green("/model") + `                        - Show current model and list of available models
@@ -68,6 +70,7 @@ type replState struct {
 	length       types.OutputLength
 	promptName   string
 	lastResponse string
+	projCtx      projectcontext.Result
 	store        *prompts.Store
 	client       *llm.Client
 }
@@ -92,6 +95,9 @@ func runInteractive(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to load prompts: %w", err)
 	}
+
+	workingDir, _ := os.Getwd()
+	state.projCtx = projectcontext.Load(workingDir)
 
 	state.client = llm.NewClient(cfg.GetAPIKey())
 
@@ -311,6 +317,10 @@ func handleSlashCommand(line string, state *replState) bool {
 	case "/quit", "/exit":
 		return true
 
+	case "/clear":
+		clearScreen()
+		printWelcome(state)
+
 	case "/help":
 		printHelp()
 
@@ -383,6 +393,7 @@ func handleSlashCommand(line string, state *replState) bool {
 
 func printHelp() {
 	fmt.Println("\nAvailable commands:")
+	fmt.Printf("  %s                        - Clear the screen\n", output.Cyan("/clear"))
 	fmt.Printf("  %s                       - Show current length and list of available lengths\n", output.Cyan("/length"))
 	fmt.Printf("  %s [name]                - Change output length to provided length\n", output.Cyan("/length"))
 	fmt.Printf("  %s                        - Show current model and list of available models\n", output.Cyan("/model"))
@@ -399,7 +410,7 @@ func printHelp() {
 }
 
 func generateStreaming(ctx context.Context, input string, state *replState) error {
-	systemPrompt, err := state.store.Render(state.promptName, state.length)
+	systemPrompt, err := state.store.Render(state.promptName, state.length, state.projCtx.Content)
 	if err != nil {
 		return fmt.Errorf("failed to render prompt: %w", err)
 	}
@@ -423,7 +434,7 @@ func generateStreaming(ctx context.Context, input string, state *replState) erro
 	colorizer := output.NewStreamingColorizer()
 
 	// Show progress indicator
-	fmt.Fprintln(os.Stderr, output.GeneratingMessage())
+	fmt.Fprintln(os.Stderr, output.GeneratingMessage(string(state.length), state.projCtx.Filename))
 
 	// Stream response
 	fmt.Println() // New line before output
@@ -468,4 +479,9 @@ func getHistoryFile() string {
 		return ""
 	}
 	return configDir + "/history"
+}
+
+func clearScreen() {
+	// Use ANSI escape codes to clear the screen and move cursor to top-left
+	fmt.Print("\033[2J\033[H")
 }
