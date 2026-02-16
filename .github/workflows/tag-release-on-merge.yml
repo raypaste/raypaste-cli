@@ -12,6 +12,8 @@ jobs:
   tag-release:
     name: Tag release from changelog
     runs-on: ubuntu-latest
+    env:
+      HAS_RELEASE_PAT: ${{ secrets.RELEASE_PAT != '' }}
     steps:
       - name: Checkout merge commit
         uses: actions/checkout@v4
@@ -72,7 +74,7 @@ jobs:
           fi
       
       - name: Trigger release workflow (fallback)
-        if: ${{ !secrets.RELEASE_PAT }}
+        if: ${{ env.HAS_RELEASE_PAT != 'true' }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
