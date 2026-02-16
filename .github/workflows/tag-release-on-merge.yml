@@ -1,0 +1,64 @@
+name: Tag Release On Merge
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  tag-release:
+    name: Tag release from changelog
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout merge commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: Extract latest changelog version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          latest_version="$(sed -nE 's/^##[[:space:]]+\[([0-9]+\.[0-9]+\.[0-9]+)\][[:space:]]*-[[:space:]]+.*/\1/p' CHANGELOG.md | head -n 1)"
+          if [[ -z "${latest_version}" ]]; then
+            echo "::error::Could not find a semantic version heading in CHANGELOG.md (expected: ## [x.y.z] - YYYY-MM-DD)."
+            exit 1
+          fi
+
+          echo "tag=v${latest_version}" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure version is new
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch --tags --force
+          tag="${{ steps.version.outputs.tag }}"
+          if git rev-parse "${tag}" >/dev/null 2>&1; then
+            echo "::error::Tag ${tag} already exists. Add a new version entry at the top of CHANGELOG.md before merging to main."
+            exit 1
+          fi
+
+      - name: Create and push tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${{ steps.version.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${tag}" -m "Release ${tag}"
+          if ! git push origin "${tag}"; then
+            echo "::error::Failed to push ${tag}. This can happen if another merge created the same tag first or branch protections block tag pushes."
+            echo "::error::Verify branch protection/tag permissions and bump CHANGELOG.md to a new version if ${tag} already exists."
+            exit 1
+          fi

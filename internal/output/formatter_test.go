@@ -141,6 +141,21 @@ func TestCopiedMessage(t *testing.T) {
 	}
 }
 
+func TestSuggestionPreview(t *testing.T) {
+	// Empty input returns empty
+	if got := SuggestionPreview(""); got != "" {
+		t.Errorf("SuggestionPreview(%q) = %q, want %q", "", got, "")
+	}
+	// Non-empty returns content (possibly with ANSI codes when color enabled)
+	got := SuggestionPreview("suffix")
+	if got == "" {
+		t.Error("SuggestionPreview() returned empty for non-empty input")
+	}
+	if got != "suffix" && len(got) <= len("suffix") {
+		t.Errorf("SuggestionPreview() with color should include input; got len=%d", len(got))
+	}
+}
+
 func TestAnsiColors(t *testing.T) {
 	// Test that the new color functions don't panic and return content
 	testCases := []struct {
