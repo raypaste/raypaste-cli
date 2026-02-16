@@ -1,9 +1,7 @@
 name: Tag Release On Merge
 
 on:
-  pull_request:
-    types:
-      - closed
+  push:
     branches:
       - main
 
@@ -13,14 +11,12 @@ permissions:
 jobs:
   tag-release:
     name: Tag release from changelog
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout merge commit
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
 
       - name: Extract latest changelog version
         id: version
