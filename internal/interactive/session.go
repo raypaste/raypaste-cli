@@ -135,7 +135,7 @@ func Run(state *State, opts Options) error {
 		_, _ = fmt.Fprint(os.Stdout, "> ")
 	}
 
-	fmt.Println(output.Bold(output.Green("\nGoodbye!")))
+	fmt.Println(output.Bold(output.Green("\nGoodbye! See you next time!")))
 	return nil
 }
 
@@ -233,7 +233,9 @@ func printWelcome(state *State) {
 
 func formatWelcomeLines(state *State) []string {
 	return []string{
-		fmt.Sprintf("%s\n", output.Cyan("raypaste interactive mode")),
+		"\n",
+		fmt.Sprintf("%s - ultra-fast AI completions right in your terminal\n", output.Cyan("raypaste interactive mode")),
+		"\n",
 		fmt.Sprintf(
 			"Model: %s | Length: %s | Prompt: %s\n",
 			output.Bold(output.Blue(state.Model)),

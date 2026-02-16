@@ -527,14 +527,6 @@ goimports -w ./cmd ./internal ./pkg
 go fmt ./...
 ```
 
-**Before Committing:**
-
-1. Run linter: `go tool golangci-lint run ./...`
-2. Run tests: `go test ./... -race`
-3. Verify no lint errors appear
-
-The linter is configured in `.golangci.yml` and will be run automatically by GitHub Actions on pull requests. Running it locally before pushing ensures CI passes on first try.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

@@ -198,11 +198,11 @@ func ReadingInputMessage() string {
 // GeneratingMessage returns a colored "Generating..." status line.
 // length is always shown; contextFile is appended only when non-empty.
 func GeneratingMessage(length string, contextFile string) string {
-	msg := "Generating... | output length: " + length
+	msg := lightBlue("\nGenerating...") + White(" | output length: ") + BoldYellow(length)
 	if contextFile != "" {
-		msg += " | with project context from " + contextFile
+		msg += White(" | with project context from ") + Magenta(contextFile)
 	}
-	return lightBlue(msg)
+	return msg
 }
 
 // CopiedMessage returns a colored "✓ Copied to clipboard" message
@@ -259,16 +259,36 @@ func colorizeLineWithPrefix(line string, re *regexp.Regexp, style func(...interf
 }
 
 func applyInlineStyles(line string) string {
+	// Protect inline code blocks from other markdown processing
+	// by temporarily replacing them with placeholders (using format that won't match markdown patterns)
+	codeBlocks := make([]string, 0)
+	placeholderPrefix := "\x00INLINECODE\x00"
+	placeholderIndex := 0
+	
+	// Extract and replace inline code blocks with placeholders
 	line = inlineCodeRE.ReplaceAllStringFunc(line, func(match string) string {
-		return codeStyle(match)
+		placeholder := placeholderPrefix + strings.Repeat("\x00", placeholderIndex+1)
+		codeBlocks = append(codeBlocks, match)
+		placeholderIndex++
+		return placeholder
 	})
+	
+	// Process other markdown patterns (bold, italic, links)
 	line = boldRE.ReplaceAllStringFunc(line, func(match string) string {
 		return boldStyle(match)
 	})
 	line = italicRE.ReplaceAllStringFunc(line, func(match string) string {
 		return italicStyle(match)
 	})
-	return linkRE.ReplaceAllStringFunc(line, func(match string) string {
+	line = linkRE.ReplaceAllStringFunc(line, func(match string) string {
 		return linkStyle(match)
 	})
+	
+	// Restore inline code blocks with styling
+	for i, codeBlock := range codeBlocks {
+		placeholder := placeholderPrefix + strings.Repeat("\x00", i+1)
+		line = strings.Replace(line, placeholder, codeStyle(codeBlock), 1)
+	}
+	
+	return line
 }
