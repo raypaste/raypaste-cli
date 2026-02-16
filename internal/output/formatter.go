@@ -264,7 +264,7 @@ func applyInlineStyles(line string) string {
 	codeBlocks := make([]string, 0)
 	placeholderPrefix := "\x00INLINECODE\x00"
 	placeholderIndex := 0
-	
+
 	// Extract and replace inline code blocks with placeholders
 	line = inlineCodeRE.ReplaceAllStringFunc(line, func(match string) string {
 		placeholder := placeholderPrefix + strings.Repeat("\x00", placeholderIndex+1)
@@ -272,7 +272,7 @@ func applyInlineStyles(line string) string {
 		placeholderIndex++
 		return placeholder
 	})
-	
+
 	// Process other markdown patterns (bold, italic, links)
 	line = boldRE.ReplaceAllStringFunc(line, func(match string) string {
 		return boldStyle(match)
@@ -283,12 +283,12 @@ func applyInlineStyles(line string) string {
 	line = linkRE.ReplaceAllStringFunc(line, func(match string) string {
 		return linkStyle(match)
 	})
-	
+
 	// Restore inline code blocks with styling
 	for i, codeBlock := range codeBlocks {
 		placeholder := placeholderPrefix + strings.Repeat("\x00", i+1)
 		line = strings.Replace(line, placeholder, codeStyle(codeBlock), 1)
 	}
-	
+
 	return line
 }
