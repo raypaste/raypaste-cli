@@ -89,6 +89,17 @@ sudo mv raypaste /usr/local/bin/
 
 ## Usage
 
+### Check Version
+
+Check the installed version of raypaste:
+
+```bash
+raypaste version
+# or
+raypaste --version
+raypaste -v
+```
+
 ### Generate Command
 
 Generate an optimized prompt from your input (one-shot mode):
@@ -130,6 +141,7 @@ raypaste i
 
 **Slash Commands:**
 
+- `/clear` - Clear the screen
 - `/length <short|medium|long>` - Change output length
 - `/model <alias>` - Switch model
 - `/prompt <name>` - Switch prompt template

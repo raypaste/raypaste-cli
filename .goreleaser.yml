@@ -16,6 +16,9 @@ builds:
       - CGO_ENABLED=1
     ldflags:
       - -s -w
+      - -X github.com/raypaste/raypaste-cli/cmd.Version={{.Version}}
+      - -X github.com/raypaste/raypaste-cli/cmd.GitCommit={{.ShortCommit}}
+      - -X github.com/raypaste/raypaste-cli/cmd.BuildDate={{.Date}}
 
   - id: linux
     main: .
@@ -29,6 +32,9 @@ builds:
       - CGO_ENABLED=0
     ldflags:
       - -s -w
+      - -X github.com/raypaste/raypaste-cli/cmd.Version={{.Version}}
+      - -X github.com/raypaste/raypaste-cli/cmd.GitCommit={{.ShortCommit}}
+      - -X github.com/raypaste/raypaste-cli/cmd.BuildDate={{.Date}}
 
   - id: windows
     main: .
@@ -41,6 +47,9 @@ builds:
       - CGO_ENABLED=0
     ldflags:
       - -s -w
+      - -X github.com/raypaste/raypaste-cli/cmd.Version={{.Version}}
+      - -X github.com/raypaste/raypaste-cli/cmd.GitCommit={{.ShortCommit}}
+      - -X github.com/raypaste/raypaste-cli/cmd.BuildDate={{.Date}}
 
 archives:
   - id: default

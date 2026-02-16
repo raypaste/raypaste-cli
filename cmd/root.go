@@ -22,6 +22,13 @@ var (
 	cfg        *config.Config
 )
 
+// Version information (set via -ldflags during build)
+var (
+	Version   = "dev"
+	GitCommit = "unknown"
+	BuildDate = "unknown"
+)
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "raypaste",
@@ -49,6 +56,19 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+
+	// Version flag
+	rootCmd.Flags().BoolP("version", "v", false, "Print version information")
+	rootCmd.Run = func(cmd *cobra.Command, args []string) {
+		versionFlag, _ := cmd.Flags().GetBool("version")
+		if versionFlag {
+			fmt.Printf("%s %s\n", output.Bold("raypaste-cli"), output.Cyan(Version))
+			fmt.Printf("Git commit: %s\n", GitCommit)
+			fmt.Printf("Build date: %s\n", BuildDate)
+			return
+		}
+		_ = cmd.Help()
+	}
 
 	// Persistent flags (available to all subcommands)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.raypaste/config.yaml)")
