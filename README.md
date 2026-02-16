@@ -507,6 +507,9 @@ go tool golangci-lint run ./...
 # Run all tests
 go test ./...
 
+# Run tests (verbose)
+go test ./... -v
+
 # Run tests with race detector and coverage
 go test ./... -race -coverprofile=coverage.out
 
