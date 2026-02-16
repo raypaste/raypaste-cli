@@ -20,11 +20,13 @@ type Message struct {
 
 // CompletionRequest represents a request to the OpenRouter API
 type CompletionRequest struct {
-	Model       string    `json:"model"`
-	Messages    []Message `json:"messages"`
-	MaxTokens   int       `json:"max_tokens,omitempty"`
-	Temperature float64   `json:"temperature,omitempty"`
-	Stream      bool      `json:"stream,omitempty"`
+	Model               string    `json:"model"`
+	Messages            []Message `json:"messages"`
+	MaxTokens           int       `json:"max_tokens,omitempty"`
+	MaxCompletionTokens int       `json:"max_completion_tokens,omitempty"`
+	ReasoningEffort     string    `json:"reasoning_effort,omitempty"`
+	Temperature         float64   `json:"temperature,omitempty"`
+	Stream              bool      `json:"stream,omitempty"`
 }
 
 // TokenUsage represents token usage statistics from the API
