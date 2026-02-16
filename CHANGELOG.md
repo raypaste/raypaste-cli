@@ -5,18 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased-v0.1.7]
+## [v0.2.0]
 
 ### Added
 
+- **Project context awareness**: Automatically loads project context from `CLAUDE.md`, `AGENTS.md`, or `.cursor/rules/` files to inform prompt generation
 - `/clear` command in interactive mode to clear the screen
 - `version` command to display version information (`raypaste version`)
 - `--version` and `-v` flags to display version information
 - Version embedding via ldflags during build process (includes version, git commit, and build date)
+- Comprehensive test suite for command handling (`cmd/cmd_test.go`)
+- Tests for project context finder (`internal/projectcontext/finder_test.go`)
+- Enhanced status messages showing output length and project context file when active
 
 ### Changed
 
+- **Default model updated to `cerebras-gpt-oss-120b`** (prev `cerebras-llama-8b`)
+- Prompt templates now support `{{.Context}}` variable for project-aware generation
+- `GeneratingMessage()` now includes output length and context file information
 - Updated GoReleaser configuration to embed version information in release binaries
+- Build script now embeds version information via ldflags
 
 ## [0.1.6] - 2026-02-16
 
@@ -127,6 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Flexible Configuration**: Multiple configuration methods
 - **Model Flexibility**: Use built-in aliases or any OpenRouter model ID
 
+[0.2.0]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.2.0
 [0.1.6]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.1.6
 [0.1.5]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.1.5
 [0.1.4]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.1.4

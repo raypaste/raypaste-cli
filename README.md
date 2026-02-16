@@ -4,13 +4,14 @@
 
 A lightning fast Go CLI for generating meta-prompts and AI completions via [OpenRouter](https://openrouter.ai/), with fast model routing, configurable output lengths, customizable prompts, and interactive REPL mode with streaming.
 
-- **Fast Generation**: Generate optimized prompts in milliseconds using fast inference from small models running on
-  hardware from Cerebras.
-- **Interactive Mode**: REPL with streaming output and slash commands
+- **Responses in Milliseconds**: Generate text completions in ~100-900ms using open-source models running on
+  Cerebras chips.
+- **Interactive Mode**: Run raypaste in interactive mode with streaming output and slash commands
+- **Project Context Awareness**: Automatically loads context from `CLAUDE.md`, `AGENTS.md`, or `.cursor/rules/` files to inform prompt generation
 - **Clipboard Integration**: Auto-copy results to clipboard
 - **Custom Prompts**: Create and manage your own prompt templates
 - **Flexible Configuration**: Configure via YAML, environment variables, or CLI flags
-- **OpenRouter Integration**: Access to multiple LLM providers through a single API
+- **OpenRouter Integration**: Raypaste can be used with many different LLM providers and models through OpenRouter's API
 
 ## Installation
 
@@ -344,6 +345,44 @@ raypaste gen "review my API code" -p code-review
 ### Template Variables
 
 - `{{.LengthDirective}}` - Automatically replaced with length-specific guidance
+- `{{.Context}}` - Automatically replaced with project context (when available)
+
+## Project Context Awareness
+
+raypaste automatically loads and incorporates project context to make your generated prompts more relevant to your specific project. This feature helps generate better prompts by understanding your project's conventions, architecture, and goals.
+
+### Supported Context Files
+
+raypaste looks for context in the following files (in order of priority):
+
+1. **`.cursor/rules/`** - Cursor/Claude AI rules files
+   - Useful for documenting project conventions and architecture
+
+2. **`CLAUDE.md`** - Claude-specific guidance
+   - Instructions and patterns for AI code generation
+
+3. **`AGENTS.md`** - Agent-specific configuration
+   - Documentation for AI agents working with your project
+
+When found, the context from these files is automatically included in your prompt generation, allowing the model to provide more accurate and contextually-aware responses.
+
+### How It Works
+
+When you generate a prompt, raypaste:
+
+1. Searches your current directory and parent directories for context files
+2. Loads the first matching context file found
+3. Includes the context in the system prompt via the `{{.Context}}` template variable
+4. Shows you which context file was used in the status message
+
+### Example
+
+With a `CLAUDE.md` file in your project:
+
+```bash
+raypaste gen "refactor this to use interfaces" -p metaprompt
+# Output includes context from CLAUDE.md, making the generated prompt aware of your project structure
+```
 
 ### Pipeline with Other Tools
 
@@ -394,17 +433,20 @@ Warning: Could not copy to clipboard: failed to initialize clipboard: clipboard:
 **Root Cause**: The clipboard library (`golang.design/x/clipboard`) requires CGO (C bindings) to access system clipboard APIs on macOS, Linux, and Windows. When binaries are cross-compiled with `CGO_ENABLED=0`, the clipboard feature fails at runtime.
 
 **Solution**: We've fixed the build pipeline to compile on native platforms:
+
 - **macOS binaries** are now built on `macos-latest` runners with `CGO_ENABLED=1`
 - **Linux binaries** are built on `ubuntu-latest` (clipboard may not work on Linux arm64 cross-compilation; use `xclip` or `xsel` if installed)
 - **Windows binaries** are built on `ubuntu-latest` (clipboard may not work; requires CGO cross-compilation setup)
 
 **If you're still experiencing this issue**:
+
 1. Make sure you're using the latest version: `brew upgrade raypaste` (macOS) or reinstall from the latest release
 2. On macOS, ensure `pbcopy` is available (built-in utility)
 3. Use `--no-copy` flag to disable clipboard and bypass the warning: `raypaste gen "text" --no-copy`
 4. On headless/SSH systems, the warning is informational only and doesn't affect functionality
 
 **For developers building from source**: Ensure `CGO_ENABLED=1` when building for your platform:
+
 ```bash
 CGO_ENABLED=1 go build -o raypaste
 ```
