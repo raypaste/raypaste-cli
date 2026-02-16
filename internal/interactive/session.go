@@ -44,12 +44,14 @@ type readResult struct {
 
 // Run starts the interactive REPL loop.
 func Run(state *State, opts Options) error {
+	ac := newAutoCompleter(state, opts)
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:          "> ",
 		HistoryFile:     getHistoryFile(),
 		InterruptPrompt: "^C",
 		EOFPrompt:       "exit",
-		AutoComplete:    newAutoCompleter(state, opts),
+		AutoComplete:    ac,
+		Painter:         newSuggestionPainter(ac),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create readline: %w", err)

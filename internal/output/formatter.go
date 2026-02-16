@@ -66,20 +66,23 @@ var (
 	BoldHiWhite   = color.New(color.FgHiWhite, color.Bold).SprintFunc()
 
 	// Underline
-	Underline    = color.New(color.Underline).SprintFunc()
-	headerRE     = regexp.MustCompile(`^#{1,6}\s`)
-	unorderedRE  = regexp.MustCompile(`^\s*[-*+]\s`)
-	orderedRE    = regexp.MustCompile(`^\s*\d+\.\s`)
-	quoteRE      = regexp.MustCompile(`^\s*>\s`)
-	tableRE      = regexp.MustCompile(`^\s*\|\s.*\s\|\s*$`)
-	ruleRE       = regexp.MustCompile(`^\s*---\s*$`)
-	unorderedCap = regexp.MustCompile(`^(\s*[-*+]\s)(.*)$`)
-	orderedCap   = regexp.MustCompile(`^(\s*\d+\.\s)(.*)$`)
-	quoteCap     = regexp.MustCompile(`^(\s*>\s)(.*)$`)
-	inlineCodeRE = regexp.MustCompile("`[^`]+`")
-	boldRE       = regexp.MustCompile(`\*\*[^*\n]+\*\*`)
-	italicRE     = regexp.MustCompile(`_[^_\n]+_`)
-	linkRE       = regexp.MustCompile(`\[[^\]]+\]\([^)]+\)`)
+	Underline = color.New(color.Underline).SprintFunc()
+
+	// Suggestion preview: dim/faint text for inline completion hints
+	suggestionStyle = color.New(color.Faint).SprintFunc()
+	headerRE        = regexp.MustCompile(`^#{1,6}\s`)
+	unorderedRE     = regexp.MustCompile(`^\s*[-*+]\s`)
+	orderedRE       = regexp.MustCompile(`^\s*\d+\.\s`)
+	quoteRE         = regexp.MustCompile(`^\s*>\s`)
+	tableRE         = regexp.MustCompile(`^\s*\|\s.*\s\|\s*$`)
+	ruleRE          = regexp.MustCompile(`^\s*---\s*$`)
+	unorderedCap    = regexp.MustCompile(`^(\s*[-*+]\s)(.*)$`)
+	orderedCap      = regexp.MustCompile(`^(\s*\d+\.\s)(.*)$`)
+	quoteCap        = regexp.MustCompile(`^(\s*>\s)(.*)$`)
+	inlineCodeRE    = regexp.MustCompile("`[^`]+`")
+	boldRE          = regexp.MustCompile(`\*\*[^*\n]+\*\*`)
+	italicRE        = regexp.MustCompile(`_[^_\n]+_`)
+	linkRE          = regexp.MustCompile(`\[[^\]]+\]\([^)]+\)`)
 
 	// Markdown patterns
 	markdownPatterns = []*regexp.Regexp{
@@ -205,6 +208,16 @@ func GeneratingMessage(length string, contextFile string) string {
 // CopiedMessage returns a colored "✓ Copied to clipboard" message
 func CopiedMessage() string {
 	return green("✓ Copied to clipboard")
+}
+
+// SuggestionPreview returns the given text styled for inline completion preview
+// (dim/faint). When NO_COLOR is set, returns the text unmodified so the hint
+// remains visible.
+func SuggestionPreview(text string) string {
+	if color.NoColor || text == "" {
+		return text
+	}
+	return suggestionStyle(text)
 }
 
 func colorizeMarkdownLine(line string, inCodeBlock *bool) string {

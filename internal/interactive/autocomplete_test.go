@@ -3,6 +3,8 @@ package interactive
 import (
 	"strings"
 	"testing"
+
+	"github.com/raypaste/raypaste-cli/internal/prompts"
 )
 
 func TestCompleteLineCommandPrefixMatching(t *testing.T) {
@@ -146,6 +148,48 @@ func TestCompleteLinePromptSuggestions(t *testing.T) {
 				)
 			}
 		})
+	}
+}
+
+func TestSuggestionPainter(t *testing.T) {
+	store, err := prompts.NewStore()
+	if err != nil {
+		t.Fatalf("prompts.NewStore() error = %v", err)
+	}
+	state := &State{Store: store}
+	opts := Options{Models: nil}
+	ac := newAutoCompleter(state, opts)
+	painter := newSuggestionPainter(ac)
+
+	// Empty line: no preview
+	line := []rune("")
+	got := painter.Paint(line, 0)
+	if string(got) != "" {
+		t.Errorf("Paint(empty) = %q, want %q", string(got), "")
+	}
+
+	// Single slash: no preview (need at least 2 chars)
+	line = []rune("/")
+	got = painter.Paint(line, 1)
+	if string(got) != "/" {
+		t.Errorf("Paint(/) = %q, want %q", string(got), "/")
+	}
+
+	// No completion for non-slash input: returns line unchanged
+	line = []rune("hello")
+	got = painter.Paint(line, 5)
+	if string(got) != "hello" {
+		t.Errorf("Paint(non-slash) = %q, want %q", string(got), "hello")
+	}
+
+	// Slash command with 2+ chars shows completion: returns line + dimmed suffix
+	line = []rune("/hel")
+	got = painter.Paint(line, 4)
+	if len(got) <= 4 {
+		t.Errorf("Paint(/hel) should append suggestion; got len=%d", len(got))
+	}
+	if string(got[:4]) != "/hel" {
+		t.Errorf("Paint(/hel) should preserve input; got %q", string(got[:4]))
 	}
 }
 

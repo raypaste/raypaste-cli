@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/raypaste/raypaste-cli/internal/config"
+	"github.com/raypaste/raypaste-cli/internal/output"
 
 	"github.com/chzyer/readline"
 )
@@ -134,4 +135,31 @@ func slashCommandAutocompleteNames(commands []slashCommandSpec) []string {
 		names = append(names, command.Primary)
 	}
 	return names
+}
+
+// suggestionPainter renders a dimmed completion preview after the cursor.
+// It uses the same autocompleter as Tab completion for consistency.
+type suggestionPainter struct {
+	ac readline.AutoCompleter
+}
+
+func newSuggestionPainter(ac readline.AutoCompleter) readline.Painter {
+	return &suggestionPainter{ac: ac}
+}
+
+func (p *suggestionPainter) Paint(line []rune, pos int) []rune {
+	// Only show preview after typing at least 2 characters (e.g., "/h" not just "/")
+	if len(line) < 2 {
+		return line
+	}
+	suffixes, _ := p.ac.Do(line, pos)
+	if len(suffixes) == 0 {
+		return line
+	}
+	suffix := string(suffixes[0])
+	if suffix == "" {
+		return line
+	}
+	preview := output.SuggestionPreview(suffix)
+	return append(line, []rune(preview)...)
 }
