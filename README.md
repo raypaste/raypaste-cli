@@ -8,10 +8,10 @@ A lightning fast Go CLI for generating meta-prompts and AI completions via [Open
   Cerebras chips.
 - **Interactive Mode**: Run raypaste in interactive mode with streaming output and slash commands
 - **Project Context Awareness**: Automatically loads context from `CLAUDE.md`, `AGENTS.md`, or `.cursor/rules/` files to inform prompt generation
-- **Clipboard Integration**: Auto-copy results to clipboard
-- **Custom Prompts**: Create and manage your own prompt templates
+- **Custom Prompts**: Create and use your own prompts
 - **Flexible Configuration**: Configure via YAML, environment variables, or CLI flags
 - **OpenRouter Integration**: Raypaste can be used with many different LLM providers and models through OpenRouter's API
+- **Clipboard Integration**: Auto-copies output to clipboard (can be disabled)
 
 ## Installation
 
@@ -36,7 +36,7 @@ cd raypaste-cli
 ./build
 ```
 
-Or manually:
+Or instead of `./build` run manually:
 
 ```bash
 go build -o raypaste
@@ -47,9 +47,9 @@ sudo mv raypaste /usr/local/bin/
 
 ## Quick Start
 
-1. **Get an OpenRouter API key** from **[openrouter.ai/keys](https://openrouter.ai/keys)**
+1. **Get an OpenRouter API key** from [openrouter.ai/keys](https://openrouter.ai/keys)
 
-   1a. (optional): Get a **Cerebras** key from **[cerebras.ai](https://www.cerebras.ai)** to set up in _OpenRouter > Settings > BYOK (bring your own key) > Cerebras API key_.
+   1a. (optional): Get a **Cerebras** key from [cerebras.ai](https://www.cerebras.ai) to set up in _OpenRouter > Settings > BYOK (bring your own key) > Cerebras API key_.
 
 2. **Set your API key for Raypaste** (choose one method):
 
@@ -96,7 +96,6 @@ Check the installed version of raypaste:
 
 ```bash
 raypaste version
-# or
 raypaste --version
 raypaste -v
 ```
