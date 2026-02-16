@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-02-15
+
+### Added
+
+- **Improved GitHub Actions release workflow**: 2 new actions, check for valid new version in changelog and tag release on merge to main
+- **Auto-complete support**: Tab complete for /model and /prompt and for "/" slash command suggestions.
+
+### Changed
+
+- Moved and organized bulk of interactive mode logic to separate files in `/internal/interactive/`
+
 ## [0.2.0] - 2026-02-15
 
 ### Added
