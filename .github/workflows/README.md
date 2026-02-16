@@ -20,7 +20,12 @@ This repository uses a three-stage automated release process:
 **Trigger**: Push to main branch  
 **Purpose**: Automatically creates and pushes a git tag based on CHANGELOG.md version
 
-**Important**: By default, GitHub prevents workflows triggered by `GITHUB_TOKEN` from starting other workflows (to prevent recursive triggers). This means the release workflow may not automatically trigger.
+**Requirements**:
+
+- Top `CHANGELOG.md` release heading must match `## [X.Y.Z] - YYYY-MM-DD`
+- The derived tag `vX.Y.Z` must not already exist
+
+**Important**: By default, GitHub prevents workflows triggered by `GITHUB_TOKEN` from starting other workflows. This means the `Release` workflow may not automatically trigger when tag push is done with the default token.
 
 **Solutions**:
 
@@ -30,9 +35,9 @@ This repository uses a three-stage automated release process:
    - The workflow will use this token to push tags, which will trigger the release workflow
 
 2. **Fallback**: Manual workflow dispatch
-   - If no `RELEASE_PAT` is configured, the workflow attempts to manually trigger the release
+   - If no `RELEASE_PAT` is configured, the workflow attempts to manually trigger `release.yml`
    - This requires the default `GITHUB_TOKEN` to have workflow trigger permissions
-   - If this fails, manually trigger the release workflow from the Actions tab
+   - If this fails, manually trigger the `Release` workflow from the Actions tab
 
 ### Release (`release.yml`)
 
@@ -45,7 +50,7 @@ This repository uses a three-stage automated release process:
 **Inputs** (for manual dispatch):
 - `tag`: The tag to release (e.g., `v0.2.1`)
 
-## Manual Release (Workaround)
+## Manual Release (Fallback)
 
 If the release workflow doesn't trigger automatically:
 
@@ -54,6 +59,15 @@ If the release workflow doesn't trigger automatically:
 3. Select branch: `main`
 4. Enter the tag (e.g., `v0.2.1`)
 5. Click "Run workflow"
+
+If manual release fails with `A branch or tag with the name 'vX.Y.Z' could not be found`, create and push the missing tag first:
+
+```bash
+git checkout main
+git pull
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
 
 ## Testing Changes
 
@@ -84,11 +98,33 @@ git push --delete origin v0.0.0-test
 
 **Fix**: Configure `RELEASE_PAT` secret OR manually trigger the release workflow
 
+### Tag was not created after merge to main
+
+**Cause**: `tag-release-on-merge.yml` failed (for example, invalid workflow syntax or changelog/version guard failure)
+
+**Fix**:
+
+1. Check the failed `tag-release-on-merge` run on `main`
+2. Fix workflow/changelog issue and merge to `main`
+3. Backfill the tag:
+   ```bash
+   git checkout main
+   git pull
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
+   ```
+
 ### "Tag already exists" error
 
 **Cause**: The version in CHANGELOG.md matches an existing tag
 
 **Fix**: Bump the version in CHANGELOG.md to a new version number
+
+### Invalid workflow file error (run fails in 0s)
+
+**Cause**: YAML parse/evaluation error in the workflow file itself
+
+**Fix**: Correct the workflow on a branch and merge to `main`; then re-run by pushing a new commit or backfill the missed tag if needed
 
 ### GoReleaser fails on macOS
 
