@@ -15,6 +15,7 @@ import (
 	"github.com/raypaste/raypaste-cli/internal/config"
 	"github.com/raypaste/raypaste-cli/internal/llm"
 	"github.com/raypaste/raypaste-cli/internal/output"
+	"github.com/raypaste/raypaste-cli/internal/projectcontext"
 	"github.com/raypaste/raypaste-cli/internal/prompts"
 
 	"github.com/spf13/cobra"
@@ -70,7 +71,10 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load prompts: %w", err)
 	}
 
-	systemPrompt, err := store.Render(promptFlag, length)
+	workingDir, _ := os.Getwd()
+	projCtx := projectcontext.Load(workingDir)
+
+	systemPrompt, err := store.Render(promptFlag, length, projCtx.Content)
 	if err != nil {
 		return fmt.Errorf("failed to render prompt: %w", err)
 	}
@@ -91,7 +95,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	client := llm.NewClient(cfg.GetAPIKey())
 
 	// Show progress indicator
-	fmt.Fprintln(os.Stderr, output.GeneratingMessage())
+	fmt.Fprintln(os.Stderr, output.GeneratingMessage(string(length), projCtx.Filename))
 	fmt.Fprintln(os.Stderr, "")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

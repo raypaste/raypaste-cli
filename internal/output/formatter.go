@@ -192,9 +192,14 @@ func ReadingInputMessage() string {
 	return lightBlue("Reading input...")
 }
 
-// GeneratingMessage returns a colored "Generating..." message
-func GeneratingMessage() string {
-	return lightBlue("Generating...")
+// GeneratingMessage returns a colored "Generating..." status line.
+// length is always shown; contextFile is appended only when non-empty.
+func GeneratingMessage(length string, contextFile string) string {
+	msg := "Generating... | output length: " + length
+	if contextFile != "" {
+		msg += " | with project context from " + contextFile
+	}
+	return lightBlue(msg)
 }
 
 // CopiedMessage returns a colored "✓ Copied to clipboard" message

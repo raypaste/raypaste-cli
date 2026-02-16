@@ -70,7 +70,7 @@ type replState struct {
 	length       types.OutputLength
 	promptName   string
 	lastResponse string
-	projCtx      string
+	projCtx      projectcontext.Result
 	store        *prompts.Store
 	client       *llm.Client
 }
@@ -410,7 +410,7 @@ func printHelp() {
 }
 
 func generateStreaming(ctx context.Context, input string, state *replState) error {
-	systemPrompt, err := state.store.Render(state.promptName, state.length, state.projCtx)
+	systemPrompt, err := state.store.Render(state.promptName, state.length, state.projCtx.Content)
 	if err != nil {
 		return fmt.Errorf("failed to render prompt: %w", err)
 	}
@@ -434,7 +434,7 @@ func generateStreaming(ctx context.Context, input string, state *replState) erro
 	colorizer := output.NewStreamingColorizer()
 
 	// Show progress indicator
-	fmt.Fprintln(os.Stderr, output.GeneratingMessage())
+	fmt.Fprintln(os.Stderr, output.GeneratingMessage(string(state.length), state.projCtx.Filename))
 
 	// Stream response
 	fmt.Println() // New line before output

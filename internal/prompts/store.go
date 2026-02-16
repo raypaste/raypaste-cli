@@ -146,8 +146,9 @@ func (s *Store) Get(name string) (*Prompt, error) {
 	return prompt, nil
 }
 
-// Render renders a prompt template with the given output length
-func (s *Store) Render(name string, length types.OutputLength) (string, error) {
+// Render renders a prompt template with the given output length and project context.
+// The context string is injected into the template via {{.Context}}.
+func (s *Store) Render(name string, length types.OutputLength, context string) (string, error) {
 	prompt, err := s.Get(name)
 	if err != nil {
 		return "", err
@@ -175,6 +176,7 @@ func (s *Store) Render(name string, length types.OutputLength) (string, error) {
 	var buf bytes.Buffer
 	data := map[string]string{
 		"LengthDirective": directive,
+		"Context":         context,
 	}
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to render template: %w", err)
