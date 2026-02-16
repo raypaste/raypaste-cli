@@ -76,7 +76,7 @@ func TestConfigGetDefaultModel(t *testing.T) {
 		want string
 	}{
 		{"custom model", Config{DefaultModel: "custom-model"}, "custom-model"},
-		{"empty falls back", Config{DefaultModel: ""}, "cerebras-llama-8b"},
+		{"empty falls back", Config{DefaultModel: ""}, "cerebras-gpt-oss-120b"},
 	}
 
 	for _, tt := range tests {
