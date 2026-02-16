@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] - 2026-02-16
+
+### Added
+
+- Comprehensive streaming test coverage for multiple content payload types (string, array, object formats)
+
+### Changed
+
+- **Enhanced streaming output parsing** - Now correctly handles OpenAI GPT-5 models with array/object content payloads in addition to string content
+- **Improved GitHub Actions release workflow** - Multi-platform builds now run on native platforms (macOS, Linux, Windows) for better compatibility
+- **macOS clipboard support** - Binaries are now built on `macos-latest` runners with `CGO_ENABLED=1` to ensure clipboard functionality works correctly
+- Updated interactive mode welcome message to highlight `Ctrl+D` as an alternative exit method alongside `/quit` command
+- Improved clipboard troubleshooting documentation with detailed root cause explanation and comprehensive solutions
+
+### Fixed
+
+- Fixed OpenAI GPT-5 model ID from `openai/gpt5-nano` to `openai/gpt-5-nano` across all configurations
+- Fixed streaming response handling for GPT-5 models by implementing `max_completion_tokens` and `reasoning_effort` parameters to prevent empty outputs
+- Fixed streaming content extraction to support complex nested content structures (text objects, content arrays) from various API providers
+- Fixed macOS clipboard failures caused by CGO-disabled builds in release binaries
+
 ## [0.1.5] - 2026-02-15
 
 ### Changed
@@ -93,6 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Flexible Configuration**: Multiple configuration methods
 - **Model Flexibility**: Use built-in aliases or any OpenRouter model ID
 
+[0.1.6]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.1.6
 [0.1.5]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.1.5
 [0.1.4]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.1.4
 [0.1.3]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.1.3
