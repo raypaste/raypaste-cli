@@ -31,7 +31,7 @@ func LoadConfig(configPath string) (*Config, error) {
 	v := viper.New()
 
 	// Set defaults
-	v.SetDefault("default_model", "cerebras-llama-8b")
+	v.SetDefault("default_model", "cerebras-gpt-oss-120b")
 	v.SetDefault("default_length", "medium")
 	v.SetDefault("auto_copy", false)    // Deprecated: kept for backward compatibility
 	v.SetDefault("disable_copy", false) // Default: clipboard copying is enabled
@@ -105,7 +105,7 @@ func GetConfig() *Config {
 		if err != nil {
 			// Return a default config
 			return &Config{
-				DefaultModel:  "cerebras-llama-8b",
+				DefaultModel:  "cerebras-gpt-oss-120b",
 				DefaultLength: types.OutputLengthMedium,
 				AutoCopy:      false,
 				DisableCopy:   false,
@@ -131,7 +131,7 @@ func (c *Config) GetDefaultModel() string {
 	if c.DefaultModel != "" {
 		return c.DefaultModel
 	}
-	return "cerebras-llama-8b"
+	return "cerebras-gpt-oss-120b"
 }
 
 // GetDefaultLength returns the default output length setting
