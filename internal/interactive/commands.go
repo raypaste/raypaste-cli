@@ -167,10 +167,22 @@ func handleSlashCommand(line string, state *State, models map[string]config.Mode
 }
 
 func printHelp() {
-	fmt.Println("\nAvailable commands:")
+	// Calculate max usage length for description text right-alignment
+	maxUsageLen := 0
 	for _, command := range interactiveSlashCommands {
 		for _, entry := range command.HelpEntries {
-			fmt.Printf("  %s - %s\n", output.Cyan(entry.Usage), entry.Description)
+			if len(entry.Usage) > maxUsageLen {
+				maxUsageLen = len(entry.Usage)
+			}
+		}
+	}
+
+	fmt.Println(output.Bold("Available commands:"))
+	fmt.Println()
+	for _, command := range interactiveSlashCommands {
+		for _, entry := range command.HelpEntries {
+			padding := maxUsageLen - len(entry.Usage)
+			fmt.Printf("  %s%s - %s\n", (output.Cyan(entry.Usage)), strings.Repeat(" ", padding), entry.Description)
 		}
 	}
 	fmt.Println("\nKeyboard shortcuts:")
