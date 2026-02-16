@@ -85,4 +85,3 @@ func TestProcessStreamingResponse_StreamError(t *testing.T) {
 		t.Fatalf("processStreamingResponse() error = %q, want contains %q", err.Error(), "provider failed")
 	}
 }
-
