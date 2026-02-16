@@ -201,7 +201,7 @@ See `.env.example` for a complete example.
 | ----------------------- | ---------------------------------- | -------- | ------- |
 | `cerebras-llama-8b`     | `meta-llama/llama-3.1-8b-instruct` | Cerebras | Fastest |
 | `cerebras-gpt-oss-120b` | `openai/gpt-oss-120b`              | Cerebras | Fast    |
-| `openai-gpt5-nano`      | `openai/gpt5-nano`                 | OpenAI   | Fast    |
+| `openai-gpt5-nano`      | `openai/gpt-5-nano`                | OpenAI   | Fast    |
 
 ### Using Custom Models
 
