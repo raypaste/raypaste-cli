@@ -5,6 +5,7 @@ package llm
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/raypaste/raypaste-cli/internal/config"
 	"github.com/raypaste/raypaste-cli/pkg/types"
@@ -57,7 +58,21 @@ func BuildRequest(modelAlias, systemPrompt, userPrompt string, length types.Outp
 		Stream:      stream,
 	}
 
+	// GPT-5 models account for reasoning tokens inside completion tokens.
+	// Using max_completion_tokens and lower reasoning effort avoids empty
+	// visible outputs caused by reasoning consuming the full budget.
+	if isGPT5Model(modelID) {
+		req.MaxTokens = 0
+		req.MaxCompletionTokens = lengthParams.MaxTokens
+		req.ReasoningEffort = "minimal"
+	}
+
 	return req, nil
+}
+
+func isGPT5Model(modelID string) bool {
+	modelID = strings.ToLower(modelID)
+	return strings.HasPrefix(modelID, "openai/gpt-5") || strings.HasPrefix(modelID, "gpt-5")
 }
 
 // GetLengthDirective returns the directive for a given output length

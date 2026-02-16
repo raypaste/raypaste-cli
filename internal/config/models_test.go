@@ -23,6 +23,7 @@ func TestResolveModel(t *testing.T) {
 		wantErr bool
 	}{
 		{"default model", "cerebras-llama-8b", "meta-llama/llama-3.1-8b-instruct", false},
+		{"default openai model", "openai-gpt5-nano", "openai/gpt-5-nano", false},
 		{"custom model", "custom", "custom/model", false},
 		{"direct ID", "provider/direct-model", "provider/direct-model", false},
 	}
@@ -57,6 +58,7 @@ func TestGetModelID(t *testing.T) {
 		wantErr bool
 	}{
 		{"default model", "cerebras-llama-8b", "meta-llama/llama-3.1-8b-instruct", false},
+		{"default openai model", "openai-gpt5-nano", "openai/gpt-5-nano", false},
 		{"custom model", "custom", "custom/model", false},
 		{"direct ID", "provider/model", "provider/model", false},
 	}

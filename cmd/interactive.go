@@ -289,8 +289,9 @@ func formatWelcomeLines(state *replState) []string {
 			output.Bold(output.Green(state.promptName)),
 		),
 		fmt.Sprintf(
-			"Type %s for commands, %s to exit\n",
+			"Type %s for commands, %s or %s to close raypaste\n",
 			output.Bold(output.Green("/help")),
+			output.Bold(output.Red("Ctrl+D")),
 			output.Bold(output.Red("/quit")),
 		),
 		"\n",

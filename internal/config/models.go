@@ -25,7 +25,7 @@ var DefaultModels = map[string]Model{
 		Tier:     "balanced",
 	},
 	"openai-gpt5-nano": {
-		ID:       "openai/gpt5-nano",
+		ID:       "openai/gpt-5-nano",
 		Provider: "openai",
 		Tier:     "fast",
 	},

@@ -39,6 +39,6 @@ models:
     tier: balanced
 
   openai-gpt5-nano:
-    id: "openai/gpt5-nano"
+    id: "openai/gpt-5-nano"
     provider: openai
     tier: fast
