@@ -9,48 +9,9 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build (${{ matrix.goos }})
-    strategy:
-      matrix:
-        include:
-          - goos: darwin
-            runs-on: macos-latest
-          - goos: linux
-            runs-on: ubuntu-latest
-          - goos: windows
-            runs-on: ubuntu-latest
-    runs-on: ${{ matrix.runs-on }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.25.0"
-
-      - name: Build with GoReleaser
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          version: latest
-          args: build --split --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GOOS: ${{ matrix.goos }}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.goos }}
-          path: dist/
-
   release:
     name: Create Release
-    needs: build
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -61,12 +22,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.25.0"
-
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist/
-          merge-multiple: true
 
       - name: Extract changelog
         run: |
@@ -77,7 +32,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
-          args: release --merge --release-notes=release_notes.md
+          args: release --release-notes=release_notes.md --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # PAT with repo scope for publishing to raypaste/homebrew-tap (optional)
