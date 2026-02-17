@@ -56,8 +56,11 @@ func Run(state *State, opts Options) error {
 	if err != nil {
 		return fmt.Errorf("failed to create readline: %w", err)
 	}
+	var skipCloseOnExit bool
 	defer func() {
-		_ = rl.Close()
+		if !skipCloseOnExit {
+			_ = rl.Close()
+		}
 	}()
 
 	// Run readline in a dedicated goroutine so we can:
@@ -111,6 +114,12 @@ func Run(state *State, opts Options) error {
 		// Handle slash commands (only when input is a single-line slash command)
 		if strings.HasPrefix(fullInput, "/") && !strings.Contains(fullInput, "\n") {
 			if shouldExit := handleSlashCommand(fullInput, state, opts.Models); shouldExit {
+				// skipCloseOnExit: chzyer/readline's Close() blocks in t.wg.Wait() because the
+				// terminal ioloop can stay blocked in buf.ReadRune(). Closing os.Stdin doesn't
+				// reliably unblock it, so skipping rl.Close() on /quit.
+				// This theoretically should be fine although ungraceful, since all goroutines that are part of readline
+				// are exited when the main process exits instead of in rl.Close().
+				skipCloseOnExit = true
 				break
 			}
 			_, _ = fmt.Fprint(os.Stdout, "> ")
