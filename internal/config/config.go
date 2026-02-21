@@ -169,3 +169,70 @@ func GetPromptsDir() (string, error) {
 	}
 	return filepath.Join(configDir, "prompts"), nil
 }
+
+// Save writes the current configuration to the config file
+func (c *Config) Save() error {
+	return c.SaveTo("")
+}
+
+// SaveTo writes the current configuration to a specific config file path
+// If path is empty, writes to the default config location
+func (c *Config) SaveTo(path string) error {
+	configPath := path
+	if configPath == "" {
+		configDir, err := GetConfigDir()
+		if err != nil {
+			return err
+		}
+		configPath = filepath.Join(configDir, "config.yaml")
+	}
+
+	v := viper.New()
+	v.SetConfigFile(configPath)
+
+	// Set all current values
+	v.Set("api_key", c.APIKey)
+	v.Set("default_model", c.DefaultModel)
+	v.Set("default_length", c.DefaultLength)
+	v.Set("disable_copy", c.DisableCopy)
+	v.Set("temperature", c.Temperature)
+	if c.Models != nil {
+		v.Set("models", c.Models)
+	}
+
+	if err := v.WriteConfigAs(configPath); err != nil {
+		return fmt.Errorf("failed to write config file: %w", err)
+	}
+
+	return nil
+}
+
+// SetAPIKey sets the API key and saves to config
+func (c *Config) SetAPIKey(key string) error {
+	c.APIKey = key
+	return c.Save()
+}
+
+// SetDefaultModel sets the default model and saves to config
+func (c *Config) SetDefaultModel(model string) error {
+	c.DefaultModel = model
+	return c.Save()
+}
+
+// SetDefaultLength sets the default output length and saves to config
+func (c *Config) SetDefaultLength(length types.OutputLength) error {
+	c.DefaultLength = length
+	return c.Save()
+}
+
+// SetDisableCopy sets the disable copy setting and saves to config
+func (c *Config) SetDisableCopy(disable bool) error {
+	c.DisableCopy = disable
+	return c.Save()
+}
+
+// SetTemperature sets the temperature and saves to config
+func (c *Config) SetTemperature(temp float64) error {
+	c.Temperature = temp
+	return c.Save()
+}
