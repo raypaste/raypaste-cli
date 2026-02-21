@@ -31,7 +31,7 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "raypaste",
+	Use:   "raypaste [input]",
 	Short: output.Cyan("Generate ") + output.Bold("AI-optimized prompts") + output.Cyan(" from your input"),
 	Long: output.Bold("raypaste-cli") + output.Cyan(" - Ultra-fast AI revised meta prompts from your input text.") + `
 
@@ -39,10 +39,27 @@ A Cobra-based CLI that generates meta-prompts and general AI completions via Ope
 with configurable output lengths and fast/small model routing.
 
 ` + output.Bold("Examples:") + `
-  raypaste generate "help me write a blog post" ` + output.Green("--length short") + `
-  raypaste gen "analyze CSV data" ` + output.Green("-l long") + `
-  echo "my goal" | raypaste gen
+  raypaste "help me write a blog post" ` + output.Green("--length short") + `
+  raypaste "analyze CSV data" ` + output.Green("-l long") + `
+  echo "my goal" | raypaste
   raypaste interactive`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		versionFlag, _ := cmd.Flags().GetBool("version")
+		if versionFlag {
+			return nil
+		}
+		return cobra.ExactArgs(1)(cmd, args)
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		versionFlag, _ := cmd.Flags().GetBool("version")
+		if versionFlag {
+			fmt.Printf("%s %s\n", output.Bold("raypaste-cli"), output.Cyan(Version))
+			fmt.Printf("Git commit: %s\n", GitCommit)
+			fmt.Printf("Build date: %s\n", BuildDate)
+			return nil
+		}
+		return runGenerate(cmd, args)
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -59,16 +76,6 @@ func init() {
 
 	// Version flag
 	rootCmd.Flags().BoolP("version", "v", false, "Print version information")
-	rootCmd.Run = func(cmd *cobra.Command, args []string) {
-		versionFlag, _ := cmd.Flags().GetBool("version")
-		if versionFlag {
-			fmt.Printf("%s %s\n", output.Bold("raypaste-cli"), output.Cyan(Version))
-			fmt.Printf("Git commit: %s\n", GitCommit)
-			fmt.Printf("Build date: %s\n", BuildDate)
-			return
-		}
-		_ = cmd.Help()
-	}
 
 	// Persistent flags (available to all subcommands)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.raypaste/config.yaml)")

@@ -85,7 +85,7 @@ sudo mv raypaste /usr/local/bin/
 3. **Generate your first prompt**:
 
    ```bash
-   raypaste generate "help me write a blog post about Go CLI projects for social media platforms like reddit and linkedin"
+   raypaste "help me write a blog post about Go CLI projects for social media platforms like reddit and linkedin"
    ```
 
 ## Usage
@@ -100,25 +100,29 @@ raypaste --version
 raypaste -v
 ```
 
-### Generate Command
+### Instant Complete Mode
 
-Generate an optimized prompt from your input (one-shot mode):
+Generate an optimized prompt from your input in a single shot. You can invoke it directly without a subcommand:
 
 ```bash
-# Basic usage
-raypaste generate "update raypaste to support colors in generate and interactive CLI"
-
-# Short alias
-raypaste gen "I need to refactor cmd/interactive.go to have helper functions in internal package folder."
+# Basic Usage (Instant completions)
+raypaste "update raypaste to support colors in generate and interactive CLI"
 
 # With flags
-raypaste gen "write a blog post about metaprompts" --length long
+raypaste "write a blog post about metaprompts" --length long
 
 # From stdin
-echo "my goal" | raypaste gen
+echo "my goal" | raypaste
 
 # Specify model
-raypaste gen "optimize this code" -m cerebras-gpt-oss-120b
+raypaste "optimize this code" -m cerebras-gpt-oss-120b
+```
+
+The `generate` subcommand (aliases: `gen`, `g`) also works if you prefer it:
+
+```bash
+raypaste generate "update raypaste to support colors"
+raypaste gen "I need to refactor cmd/interactive.go to have helper functions in internal package folder."
 ```
 
 **Flags:**
@@ -138,6 +142,8 @@ raypaste interactive
 # or
 raypaste i
 ```
+
+> **Note:** Context does not persist between requests in interactive mode. Each message is a fresh, stateless request — the model has no memory of previous exchanges in the session.
 
 **Slash Commands:**
 
@@ -222,7 +228,7 @@ You can use any OpenRouter model by:
 1. **Direct model ID**: Use the full OpenRouter model ID as the model flag
 
    ```bash
-   raypaste gen "hello" -m "anthropic/claude-4.6-opus"
+   raypaste "hello" -m "anthropic/claude-4.6-opus"
    ```
 
 2. **Custom alias**: Define in `config.yaml`
@@ -233,7 +239,7 @@ You can use any OpenRouter model by:
        provider: "anthropic"
        tier: "powerful"
    ```
-   Then use: `raypaste gen "hello" -m my-claude`
+   Then use: `raypaste "hello" -m my-claude`
 
 ## Output Lengths
 
@@ -241,9 +247,9 @@ Output length controls both the desired response length and the `max_tokens` par
 
 | Length   | Max Tokens | Use Case                               |
 | -------- | ---------- | -------------------------------------- |
-| `short`  | 300        | Quick, concise prompts (~100 words)    |
-| `medium` | 800        | Balanced detail (~150-300 words)       |
-| `long`   | 1500       | Comprehensive prompts (300-500+ words) |
+| `short`  | 550        | Quick, concise prompts (~150 words)    |
+| `medium` | 850        | Balanced detail (~200-350 words)       |
+| `long`   | 1600       | Comprehensive prompts (400-600+ words) |
 
 The system prompt includes guidance for each length to ensure appropriate output.
 
@@ -255,7 +261,7 @@ raypaste automatically formats prompts with colored output:
 
 - **Disabling Colors**: Colors respect the `NO_COLOR` environment variable and terminal capabilities. To disable colors:
   ```bash
-  NO_COLOR=1 raypaste gen "hello world"
+  NO_COLOR=1 raypaste "hello world"
   ```
 
 ## Custom Prompt Templates
@@ -298,9 +304,9 @@ EOF
 **Try it out:**
 
 ```bash
-raypaste gen "coffee cup" -p ascii-art
-raypaste gen "happy cat" -p ascii-art
-raypaste gen "rocket ship" -p ascii-art
+raypaste "coffee cup" -p ascii-art
+raypaste "happy cat" -p ascii-art
+raypaste "rocket ship" -p ascii-art
 ```
 
 ### Creating Custom Prompts
@@ -338,7 +344,7 @@ See `prompt.yaml.example` for a complete example, or read the full [Custom Promp
 ### Using Custom Prompts
 
 ```bash
-raypaste gen "review my API code" -p code-review
+raypaste "review my API code" -p code-review
 ```
 
 ### Template Variables
@@ -379,7 +385,7 @@ When you generate a prompt, raypaste:
 With a `CLAUDE.md` file in your project:
 
 ```bash
-raypaste gen "refactor this to use interfaces" -p metaprompt
+raypaste "refactor this to use interfaces" -p metaprompt
 # Output includes context from CLAUDE.md, making the generated prompt aware of your project structure
 ```
 
@@ -387,10 +393,10 @@ raypaste gen "refactor this to use interfaces" -p metaprompt
 
 ```bash
 # Generate and pipe to file
-raypaste gen "API documentation structure" > api-docs-prompt.txt
+raypaste "API documentation structure" > api-docs-prompt.txt
 
 # Use with other CLI tools
-cat requirements.txt | raypaste gen "analyze these dependencies" -l medium
+cat requirements.txt | raypaste "analyze these dependencies" -l medium
 ```
 
 ## Troubleshooting
@@ -441,7 +447,7 @@ Warning: Could not copy to clipboard: failed to initialize clipboard: clipboard:
 
 1. Make sure you're using the latest version: `brew upgrade raypaste` (macOS) or reinstall from the latest release
 2. On macOS, ensure `pbcopy` is available (built-in utility)
-3. Use `--no-copy` flag to disable clipboard and bypass the warning: `raypaste gen "text" --no-copy`
+3. Use `--no-copy` flag to disable clipboard and bypass the warning: `raypaste "text" --no-copy`
 4. On headless/SSH systems, the warning is informational only and doesn't affect functionality
 
 **For developers building from source**: Ensure `CGO_ENABLED=1` when building for your platform:

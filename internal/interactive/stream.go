@@ -38,7 +38,7 @@ func generateStreaming(ctx context.Context, input string, state *State, opts Opt
 	colorizer := output.NewStreamingColorizer()
 
 	// Show progress indicator
-	fmt.Fprintln(os.Stderr, output.GeneratingMessage(string(state.Length), state.ProjCtx.Filename))
+	fmt.Fprintln(os.Stderr, output.GeneratingMessage(state.Model, string(state.Length), state.ProjCtx.Filename))
 
 	// Stream response
 	fmt.Println() // New line before output

@@ -60,10 +60,10 @@ func TestBuildRequest(t *testing.T) {
 		wantEffort string
 		wantErr    bool
 	}{
-		{"short length", "test-model", "test/model", types.OutputLengthShort, 300, 0, "", false},
-		{"medium length", "test-model", "test/model", types.OutputLengthMedium, 800, 0, "", false},
-		{"long length", "test-model", "test/model", types.OutputLengthLong, 1500, 0, "", false},
-		{"gpt5 medium length", "test-gpt5", "openai/gpt-5-nano", types.OutputLengthMedium, 0, 800, "minimal", false},
+		{"short length", "test-model", "test/model", types.OutputLengthShort, 550, 0, "", false},
+		{"medium length", "test-model", "test/model", types.OutputLengthMedium, 850, 0, "", false},
+		{"long length", "test-model", "test/model", types.OutputLengthLong, 1600, 0, "", false},
+		{"gpt5 medium length", "test-gpt5", "openai/gpt-5-nano", types.OutputLengthMedium, 0, 850, "minimal", false},
 		{"invalid length", "test-model", "", types.OutputLength("invalid"), 0, 0, "", true},
 	}
 

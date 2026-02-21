@@ -39,10 +39,6 @@ an optimized prompt using the specified model and output length.
 	RunE: runGenerate,
 }
 
-func init() {
-	rootCmd.AddCommand(generateCmd)
-}
-
 func runGenerate(cmd *cobra.Command, args []string) error {
 	// Get input from args or stdin
 	input, err := getInput(args)
@@ -95,7 +91,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	client := llm.NewClient(cfg.GetAPIKey())
 
 	// Show progress indicator
-	fmt.Fprintln(os.Stderr, output.GeneratingMessage(string(length), projCtx.Filename))
+	fmt.Fprintln(os.Stderr, output.GeneratingMessage(model, string(length), projCtx.Filename))
 	fmt.Fprintln(os.Stderr, "")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

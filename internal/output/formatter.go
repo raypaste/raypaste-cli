@@ -197,11 +197,11 @@ func ReadingInputMessage() string {
 }
 
 // GeneratingMessage returns a colored "Generating..." status line.
-// length is always shown; contextFile is appended only when non-empty.
-func GeneratingMessage(length string, contextFile string) string {
-	msg := lightBlue("\nGenerating...") + White(" | output length: ") + BoldYellow(length)
+// model and length are always shown; contextFile is appended only when non-empty.
+func GeneratingMessage(model string, length string, contextFile string) string {
+	msg := White("\nGenerating with ") + BoldBlue(model) + White(" | output length: ") + BoldYellow(length)
 	if contextFile != "" {
-		msg += White(" | with project context from ") + Magenta(contextFile)
+		msg += White(" | w/project context from ") + Magenta(contextFile)
 	}
 	return msg
 }
