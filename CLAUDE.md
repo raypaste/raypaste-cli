@@ -38,13 +38,14 @@ goimports -w ./cmd ./internal ./pkg
 
 **Two modes:**
 
-- **Instant complete** — single-shot generation invoked directly as `raypaste "text"` or via `generate` (aliases: `gen`, `g`); reads from args or stdin, copies to clipboard by default
+- **Instant complete** — single-shot generation invoked directly as `raypaste "text"`; reads from args or stdin, copies to clipboard by default
 - **Interactive** (`interactive`, aliases: `i`, `repl`) — REPL with streaming, slash commands (`/model`, `/prompt`, `/length`, `/copy`), readline line-editing with autocomplete and suggestion preview. **Note: context does not persist between requests — each message is a fresh, stateless request.**
 
 **Request pipeline:**
 
 ```
-Input → cmd/{generate,interactive}.go
+Input → cmd/root.go (for raypaste "text")
+      → cmd/interactive.go (for interactive mode)
       → internal/prompts/store.go       (load + render YAML prompt template)
       → internal/llm/router.go          (build OpenRouter request)
       → internal/llm/client.go          (HTTP to api.openrouter.ai)

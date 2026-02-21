@@ -118,12 +118,6 @@ echo "my goal" | raypaste
 raypaste "optimize this code" -m cerebras-gpt-oss-120b
 ```
 
-The `generate` subcommand (aliases: `gen`, `g`) also works if you prefer it:
-
-```bash
-raypaste generate "update raypaste to support colors"
-raypaste gen "I need to refactor cmd/interactive.go to have helper functions in internal package folder."
-```
 
 **Flags:**
 
