@@ -222,14 +222,14 @@ You can use any OpenRouter model by:
 1. **Direct model ID**: Use the full OpenRouter model ID as the model flag
 
    ```bash
-   raypaste gen "hello" -m "anthropic/claude-3-opus"
+   raypaste gen "hello" -m "anthropic/claude-4.6-opus"
    ```
 
 2. **Custom alias**: Define in `config.yaml`
    ```yaml
    models:
      my-claude:
-       id: "anthropic/claude-3-opus"
+       id: "anthropic/claude-4.6-opus"
        provider: "anthropic"
        tier: "powerful"
    ```

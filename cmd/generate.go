@@ -101,7 +101,9 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	result, err := client.Complete(ctx, req)
+	startTime := time.Now()
+	result, usage, err := client.Complete(ctx, req)
+	durationMs := time.Since(startTime).Milliseconds()
 	if err != nil {
 		return fmt.Errorf("generation failed: %w", err)
 	}
@@ -119,6 +121,9 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 			fmt.Fprintln(os.Stderr, output.CopiedMessage())
 		}
 	}
+
+	// Display token usage and completion time
+	fmt.Fprintln(os.Stderr, output.TokenUsageMessage(usage.PromptTokens, usage.CompletionTokens, durationMs))
 
 	return nil
 }
