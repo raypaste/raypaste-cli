@@ -46,6 +46,11 @@ var rootCmd = &cobra.Command{
 A Cobra-based CLI that generates meta-prompts and general AI completions via OpenRouter,
 with configurable output lengths and fast/small model routing.
 
+` + output.Bold("Setup:") + `
+  raypaste config set api-key ` + output.Green("sk-or-v1-...") + `        ` + output.Cyan("# Set your OpenRouter API key") + `
+  raypaste config set default-model ` + output.Green("cerebras-llama-8b") + `  ` + output.Cyan("# Set default model") + `
+  raypaste config ` + output.Green("get default-model") + `                     ` + output.Cyan("# View current settings") + `
+
 ` + output.Bold("Examples:") + `
   raypaste "help me write a blog post" ` + output.Green("--length short") + `
   raypaste "analyze CSV data" ` + output.Green("-l long") + `

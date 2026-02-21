@@ -19,6 +19,13 @@ raypaste version
 raypaste --version
 raypaste -v
 
+# Config commands
+raypaste config set api-key sk-or-v1-...
+raypaste config set default-model cerebras-llama-8b
+raypaste config set default-length short
+raypaste config get api-key
+raypaste config get default-model
+
 # Run all tests
 go test ./...
 
@@ -36,10 +43,11 @@ goimports -w ./cmd ./internal ./pkg
 
 **Entry point:** `main.go` → `cmd.Execute()` (Cobra CLI)
 
-**Two modes:**
+**Three modes:**
 
 - **Instant complete** — single-shot generation invoked directly as `raypaste "text"`; reads from args or stdin, copies to clipboard by default
 - **Interactive** (`interactive`, aliases: `i`, `repl`) — REPL with streaming, slash commands (`/model`, `/prompt`, `/length`, `/copy`), readline line-editing with autocomplete and suggestion preview. **Note: context does not persist between requests — each message is a fresh, stateless request.**
+- **Config** (`config`) — Manage configuration settings via CLI with `set` and `get` subcommands. Does not require API key to be set (allows setting the key itself).
 
 **Request pipeline:**
 
@@ -80,13 +88,26 @@ Required: `RAYPASTE_API_KEY` (or `api_key` in config).
 | Path                    | Purpose                                                  |
 | ----------------------- | -------------------------------------------------------- |
 | `cmd/`                  | Cobra command definitions and CLI wiring                 |
-| `internal/config/`      | Config loading (Viper), model alias resolution           |
+| `internal/config/`      | Config loading (Viper), model alias resolution, config save |
 | `internal/interactive/` | REPL implementation, slash commands, autocomplete        |
 | `internal/llm/`         | OpenRouter HTTP client, request building, SSE streaming  |
 | `internal/prompts/`     | Prompt template loading and rendering                    |
 | `internal/output/`      | Terminal Markdown colorization, respects `NO_COLOR`      |
 | `internal/clipboard/`   | Cross-platform clipboard via `golang.design/x/clipboard` |
 | `pkg/types/`            | Shared request/response types                            |
+
+### Config Command
+
+The `config` command provides CLI-based configuration management:
+
+```bash
+raypaste config set [key] [value]   # Set a config value
+raypaste config get [key]           # Get a config value
+```
+
+**Supported keys:** `api-key`, `default-model`, `default-length`, `disable-copy`, `temperature`
+
+**Implementation:** `cmd/config.go` uses `config.SaveTo()` method which writes to `~/.raypaste/config.yaml` via Viper. The `initConfig()` in `cmd/root.go` skips API key validation when running `config` commands, allowing users to set their API key without having one already configured.
 
 ### Autocomplete Support
 
