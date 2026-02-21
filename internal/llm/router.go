@@ -14,16 +14,16 @@ import (
 // LengthParams maps output lengths to their parameters
 var LengthParams = map[types.OutputLength]types.LengthParams{
 	types.OutputLengthShort: {
-		MaxTokens: 300,
-		Directive: "Keep the generated prompt concise — under 100 words. Focus on the core instruction only.",
+		MaxTokens: 550,
+		Directive: "Keep the generated prompt concise — under 150 words. Focus on the core instruction only.",
 	},
 	types.OutputLengthMedium: {
-		MaxTokens: 800,
-		Directive: "Generate a moderately detailed prompt (~150-300 words) with context, constraints, and desired output format.",
+		MaxTokens: 850,
+		Directive: "Generate a moderately detailed prompt (~200-350 words) with context, constraints, and desired output format.",
 	},
 	types.OutputLengthLong: {
-		MaxTokens: 1500,
-		Directive: "Generate a comprehensive prompt (300-500+ words) including examples, edge cases, tone guidance, and detailed formatting instructions.",
+		MaxTokens: 1600,
+		Directive: "Generate a comprehensive prompt (400-600+ words) including examples, edge cases, tone guidance, and detailed formatting instructions.",
 	},
 }
 

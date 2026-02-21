@@ -16,6 +16,7 @@ import (
 type streamChunkCompat struct {
 	Choices []streamChoiceCompat `json:"choices"`
 	Error   *types.StreamError   `json:"error,omitempty"`
+	Usage   *types.TokenUsage    `json:"usage,omitempty"`
 }
 
 type streamChoiceCompat struct {
@@ -145,4 +146,76 @@ func extractStreamContentFromValue(value interface{}) string {
 	default:
 		return ""
 	}
+}
+
+// processStreamingResponseWithUsage processes Server-Sent Events (SSE) from the streaming response
+// and captures token usage from the final chunk.
+func processStreamingResponseWithUsage(body io.Reader, callback func(string) error) (types.TokenUsage, error) {
+	scanner := bufio.NewScanner(body)
+	var usage types.TokenUsage
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		// Skip empty lines and SSE comments (e.g. ": OPENROUTER PROCESSING")
+		if line == "" || strings.HasPrefix(line, ":") {
+			continue
+		}
+
+		// SSE format: "data: {...}"
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+
+		// Extract JSON data
+		data := strings.TrimPrefix(line, "data: ")
+
+		// Check for done signal
+		if data == "[DONE]" {
+			break
+		}
+
+		// Parse chunk using a compatibility shape so non-string content payloads
+		// (array/object) do not cause us to drop valid chunks.
+		var chunk streamChunkCompat
+		if err := json.Unmarshal([]byte(data), &chunk); err != nil {
+			// Skip malformed chunks
+			continue
+		}
+
+		// Check for mid-stream error from OpenRouter.
+		if chunk.Error != nil {
+			return usage, fmt.Errorf("stream error from API: %s", chunk.Error.Message)
+		}
+
+		// Capture usage data if present (usually in final chunk)
+		if chunk.Usage != nil {
+			usage = *chunk.Usage
+		}
+
+		for _, choice := range chunk.Choices {
+			// Check for error termination via finish_reason
+			if choice.FinishReason == "error" {
+				return usage, fmt.Errorf("stream terminated with error finish_reason")
+			}
+
+			// Prefer delta content. Some providers send content in message.content.
+			content := extractStreamContent(choice.Delta.Content)
+			if content == "" {
+				content = extractStreamContent(choice.Message.Content)
+			}
+
+			if content != "" {
+				if err := callback(content); err != nil {
+					return usage, fmt.Errorf("callback error: %w", err)
+				}
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return usage, fmt.Errorf("error reading stream: %w", err)
+	}
+
+	return usage, nil
 }

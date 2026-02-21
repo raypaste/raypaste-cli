@@ -142,11 +142,11 @@ func TestColorizeMarkdown(t *testing.T) {
 }
 
 func TestGeneratingMessage(t *testing.T) {
-	msg := GeneratingMessage("medium", "")
+	msg := GeneratingMessage("cerebras-llama-8b", "medium", "")
 	if msg == "" {
 		t.Error("GeneratingMessage() returned empty string")
 	}
-	msgWithCtx := GeneratingMessage("short", "CLAUDE.md")
+	msgWithCtx := GeneratingMessage("cerebras-llama-8b", "short", "CLAUDE.md")
 	if msgWithCtx == "" {
 		t.Error("GeneratingMessage() with context returned empty string")
 	}

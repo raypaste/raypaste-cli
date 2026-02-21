@@ -144,7 +144,7 @@ func Run(state *State, opts Options) error {
 		_, _ = fmt.Fprint(os.Stdout, "> ")
 	}
 
-	fmt.Println(output.Bold(output.Green("\nGoodbye! See you next time!")))
+	fmt.Println(output.BoldGreen("\nGoodbye! See you next time!"))
 	return nil
 }
 
@@ -243,19 +243,25 @@ func printWelcome(state *State) {
 func formatWelcomeLines(state *State) []string {
 	return []string{
 		"\n",
-		fmt.Sprintf("%s - ultra-fast AI completions right in your terminal\n", output.Cyan("raypaste interactive mode")),
+		fmt.Sprintf("%s - %s\n", output.BoldGreen("Raypaste interactive mode"), output.White("ultra-fast AI completions right in your terminal")),
 		"\n",
 		fmt.Sprintf(
-			"Model: %s | Length: %s | Prompt: %s\n",
-			output.Bold(output.Blue(state.Model)),
-			output.Bold(output.Yellow(string(state.Length))),
-			output.Bold(output.Green(state.PromptName)),
+			"%s%s%s %s %s%s%s %s %s%s%s\n",
+			output.White("Model:"), output.White(" "), output.BoldBlue(state.Model),
+			output.White("|"),
+			output.White(" Length:"), output.White(" "), output.BoldYellow(string(state.Length)),
+			output.White("|"),
+			output.White(" Prompt:"), output.White(" "), output.BoldGreen(state.PromptName),
 		),
 		fmt.Sprintf(
-			"Type %s for commands, %s or %s to close raypaste\n",
+			"%s %s %s, %s %s %s %s\n",
+			output.White("Type "),
 			output.Bold(output.Green("/help")),
+			output.White("for commands, "),
 			output.Bold(output.Red("Ctrl+D")),
+			output.White("or "),
 			output.Bold(output.Red("/quit")),
+			output.White("to close raypaste"),
 		),
 		"\n",
 	}

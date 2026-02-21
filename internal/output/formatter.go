@@ -4,6 +4,7 @@ Copyright © 2026 Raypaste
 package output
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -196,18 +197,35 @@ func ReadingInputMessage() string {
 }
 
 // GeneratingMessage returns a colored "Generating..." status line.
-// length is always shown; contextFile is appended only when non-empty.
-func GeneratingMessage(length string, contextFile string) string {
-	msg := lightBlue("\nGenerating...") + White(" | output length: ") + BoldYellow(length)
+// model and length are always shown; contextFile is appended only when non-empty.
+func GeneratingMessage(model string, length string, contextFile string) string {
+	msg := White("\nGenerating with ") + BoldBlue(model) + White(" | output length: ") + BoldYellow(length)
 	if contextFile != "" {
-		msg += White(" | with project context from ") + Magenta(contextFile)
+		msg += White(" | w/project context from ") + Magenta(contextFile)
 	}
 	return msg
 }
 
-// CopiedMessage returns a colored "✓ Copied to clipboard" message
+// CopiedMessage returns a colored "✓ Output copied to clipboard" message
 func CopiedMessage() string {
-	return green("✓ Copied to clipboard")
+	return green("✓ Output copied to clipboard")
+}
+
+// TokenUsageMessage returns a colored token usage message showing input/output tokens and duration.
+func TokenUsageMessage(promptTokens, completionTokens int, durationMs int64) string {
+	inputTokens := Blue(fmt.Sprintf("%d", promptTokens))
+	outputTokens := Blue(fmt.Sprintf("%d", completionTokens))
+	duration := Green(fmt.Sprintf("%d ms", durationMs))
+
+	var tps string
+	if durationMs > 0 {
+		tokensPerSec := float64(completionTokens) / (float64(durationMs) / 1000.0)
+		tps = Yellow(fmt.Sprintf("%.1f tokens/s", tokensPerSec))
+	} else {
+		tps = Yellow("N/A")
+	}
+
+	return White("Tokens: ") + inputTokens + White(" input | ") + outputTokens + White(" output | ") + duration + White(" | ") + tps
 }
 
 // SuggestionPreview returns the given text styled for inline completion preview

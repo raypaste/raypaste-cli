@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/raypaste/raypaste-cli/internal/clipboard"
 	"github.com/raypaste/raypaste-cli/internal/llm"
@@ -37,16 +38,18 @@ func generateStreaming(ctx context.Context, input string, state *State, opts Opt
 	colorizer := output.NewStreamingColorizer()
 
 	// Show progress indicator
-	fmt.Fprintln(os.Stderr, output.GeneratingMessage(string(state.Length), state.ProjCtx.Filename))
+	fmt.Fprintln(os.Stderr, output.GeneratingMessage(state.Model, string(state.Length), state.ProjCtx.Filename))
 
 	// Stream response
 	fmt.Println() // New line before output
-	err = state.Client.StreamComplete(ctx, req, func(token string) error {
+	startTime := time.Now()
+	usage, err := state.Client.StreamComplete(ctx, req, func(token string) error {
 		colorizedToken := colorizer.ProcessToken(token)
 		fmt.Print(colorizedToken)
 		responseBuilder.WriteString(token)
 		return nil
 	})
+	durationMs := time.Since(startTime).Milliseconds()
 
 	if err != nil {
 		fmt.Println() // Ensure newline after error
@@ -70,6 +73,9 @@ func generateStreaming(ctx context.Context, input string, state *State, opts Opt
 			fmt.Fprintln(os.Stderr, output.CopiedMessage())
 		}
 	}
+
+	// Display token usage and completion time
+	fmt.Fprintln(os.Stderr, output.TokenUsageMessage(usage.PromptTokens, usage.CompletionTokens, durationMs))
 
 	return nil
 }

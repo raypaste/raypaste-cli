@@ -5,7 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.5] - 2026-2-17
+## [0.2.6] - 2026-02-21
+
+### Added
+
+- **Token usage metrics**: Display token count, completion time, and tokens/second after output
+- **CLAUDE.md documentation**: Added CLAUDE.md containing summarized project knowledge
+
+### Changed
+
+- **Generate command simplification**: Generate mode can be invoked directly as `raypaste "text"` without requiring a subcommand
+- **Output length adjustments**: Updated token limits and styling for better prompt generation
+- **Output styling**: Updated system output text colors/styling for better contrast
+- Fixed date format consistency in changelog (standardized to YYYY-MM-DD)
+
+## [0.2.5] - 2026-02-17
 
 ### Fixed
 

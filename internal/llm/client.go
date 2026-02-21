@@ -36,21 +36,21 @@ func NewClient(apiKey string) *Client {
 	}
 }
 
-// Complete sends a completion request to OpenRouter and returns the full response
-func (c *Client) Complete(ctx context.Context, req types.CompletionRequest) (string, error) {
+// Complete sends a completion request to OpenRouter and returns the full response with token usage.
+func (c *Client) Complete(ctx context.Context, req types.CompletionRequest) (string, types.TokenUsage, error) {
 	// Ensure stream is false for non-streaming
 	req.Stream = false
 
 	// Marshal request
 	body, err := json.Marshal(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal request: %w", err)
+		return "", types.TokenUsage{}, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
 	// Create HTTP request
 	httpReq, err := http.NewRequestWithContext(ctx, "POST", openRouterBaseURL, bytes.NewReader(body))
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return "", types.TokenUsage{}, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	// Set GetBody for retry support
@@ -64,7 +64,7 @@ func (c *Client) Complete(ctx context.Context, req types.CompletionRequest) (str
 	// Send request with retry
 	resp, err := c.doWithRetry(httpReq)
 	if err != nil {
-		return "", err
+		return "", types.TokenUsage{}, err
 	}
 	defer func() {
 		_ = resp.Body.Close()
@@ -72,44 +72,43 @@ func (c *Client) Complete(ctx context.Context, req types.CompletionRequest) (str
 
 	// Check status code
 	if resp.StatusCode != http.StatusOK {
-		return "", c.handleErrorResponse(resp)
+		return "", types.TokenUsage{}, c.handleErrorResponse(resp)
 	}
 
 	// Parse response
 	var completionResp types.CompletionResponse
 	if err := json.NewDecoder(resp.Body).Decode(&completionResp); err != nil {
-		return "", fmt.Errorf("failed to decode response: %w", err)
+		return "", types.TokenUsage{}, fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	// Extract content
 	if len(completionResp.Choices) == 0 {
-		return "", fmt.Errorf("no choices in response")
+		return "", types.TokenUsage{}, fmt.Errorf("no choices in response")
 	}
 
-	return completionResp.Choices[0].Message.Content, nil
+	return completionResp.Choices[0].Message.Content, completionResp.Usage, nil
 }
 
 // StreamComplete sends a streaming completion request and calls the callback for each token.
-//
-// The provided context controls the request lifetime — cancelling it aborts the
-// connection immediately, which triggers OpenRouter's stream cancellation and stops
-// billing for supported providers (including Cerebras).
+// Returns the content and token usage metadata. The provided context controls the request
+// lifetime — cancelling it aborts the connection immediately, which triggers OpenRouter's
+// stream cancellation and stops billing for supported providers (including Cerebras).
 //
 // See: https://openrouter.ai/docs/api/reference/streaming#stream-cancellation
-func (c *Client) StreamComplete(ctx context.Context, req types.CompletionRequest, callback func(string) error) error {
+func (c *Client) StreamComplete(ctx context.Context, req types.CompletionRequest, callback func(string) error) (types.TokenUsage, error) {
 	// Ensure stream is true
 	req.Stream = true
 
 	// Marshal request
 	body, err := json.Marshal(req)
 	if err != nil {
-		return fmt.Errorf("failed to marshal request: %w", err)
+		return types.TokenUsage{}, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
 	// Create HTTP request
 	httpReq, err := http.NewRequestWithContext(ctx, "POST", openRouterBaseURL, bytes.NewReader(body))
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+		return types.TokenUsage{}, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	// Set GetBody for potential retry support
@@ -128,7 +127,7 @@ func (c *Client) StreamComplete(ctx context.Context, req types.CompletionRequest
 	// Send request (no retry for streaming)
 	resp, err := streamClient.Do(httpReq)
 	if err != nil {
-		return fmt.Errorf("request failed: %w", err)
+		return types.TokenUsage{}, fmt.Errorf("request failed: %w", err)
 	}
 
 	// Close the response body promptly on context cancellation.
@@ -149,11 +148,11 @@ func (c *Client) StreamComplete(ctx context.Context, req types.CompletionRequest
 
 	// Check status code
 	if resp.StatusCode != http.StatusOK {
-		return c.handleErrorResponse(resp)
+		return types.TokenUsage{}, c.handleErrorResponse(resp)
 	}
 
-	// Process streaming response
-	return processStreamingResponse(resp.Body, callback)
+	// Process streaming response and capture usage
+	return processStreamingResponseWithUsage(resp.Body, callback)
 }
 
 // setHeaders sets the required headers for OpenRouter API

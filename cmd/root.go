@@ -4,11 +4,19 @@ Copyright © 2026 Raypaste
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"os"
+	"strings"
+	"time"
 
+	"github.com/raypaste/raypaste-cli/internal/clipboard"
 	"github.com/raypaste/raypaste-cli/internal/config"
+	"github.com/raypaste/raypaste-cli/internal/llm"
 	"github.com/raypaste/raypaste-cli/internal/output"
+	"github.com/raypaste/raypaste-cli/internal/projectcontext"
+	"github.com/raypaste/raypaste-cli/internal/prompts"
 
 	"github.com/spf13/cobra"
 )
@@ -31,7 +39,7 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "raypaste",
+	Use:   "raypaste [input]",
 	Short: output.Cyan("Generate ") + output.Bold("AI-optimized prompts") + output.Cyan(" from your input"),
 	Long: output.Bold("raypaste-cli") + output.Cyan(" - Ultra-fast AI revised meta prompts from your input text.") + `
 
@@ -39,10 +47,27 @@ A Cobra-based CLI that generates meta-prompts and general AI completions via Ope
 with configurable output lengths and fast/small model routing.
 
 ` + output.Bold("Examples:") + `
-  raypaste generate "help me write a blog post" ` + output.Green("--length short") + `
-  raypaste gen "analyze CSV data" ` + output.Green("-l long") + `
-  echo "my goal" | raypaste gen
+  raypaste "help me write a blog post" ` + output.Green("--length short") + `
+  raypaste "analyze CSV data" ` + output.Green("-l long") + `
+  echo "my goal" | raypaste
   raypaste interactive`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		versionFlag, _ := cmd.Flags().GetBool("version")
+		if versionFlag {
+			return nil
+		}
+		return cobra.ExactArgs(1)(cmd, args)
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		versionFlag, _ := cmd.Flags().GetBool("version")
+		if versionFlag {
+			fmt.Printf("%s %s\n", output.Bold("raypaste-cli"), output.Cyan(Version))
+			fmt.Printf("Git commit: %s\n", GitCommit)
+			fmt.Printf("Build date: %s\n", BuildDate)
+			return nil
+		}
+		return runGenerate(cmd, args)
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -59,16 +84,6 @@ func init() {
 
 	// Version flag
 	rootCmd.Flags().BoolP("version", "v", false, "Print version information")
-	rootCmd.Run = func(cmd *cobra.Command, args []string) {
-		versionFlag, _ := cmd.Flags().GetBool("version")
-		if versionFlag {
-			fmt.Printf("%s %s\n", output.Bold("raypaste-cli"), output.Cyan(Version))
-			fmt.Printf("Git commit: %s\n", GitCommit)
-			fmt.Printf("Build date: %s\n", BuildDate)
-			return
-		}
-		_ = cmd.Help()
-	}
 
 	// Persistent flags (available to all subcommands)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.raypaste/config.yaml)")
@@ -92,4 +107,114 @@ func initConfig() {
 		fmt.Fprintln(os.Stderr, "Error: API key not found. Set RAYPASTE_API_KEY environment variable or add to config.yaml")
 		os.Exit(1)
 	}
+}
+
+// runGenerate handles the generation logic for raypaste "text"
+func runGenerate(cmd *cobra.Command, args []string) error {
+	// Get input from args or stdin
+	input, err := getInput(args)
+	if err != nil {
+		return fmt.Errorf("failed to get input: %w", err)
+	}
+
+	if strings.TrimSpace(input) == "" {
+		return fmt.Errorf("no input provided")
+	}
+
+	// Validate and get output length
+	length, err := config.ValidateOutputLength(lengthFlag)
+	if err != nil {
+		return err
+	}
+
+	// Get model (use flag if set, otherwise config default)
+	model := modelFlag
+	if model == "" {
+		model = cfg.GetDefaultModel()
+	}
+
+	store, err := prompts.NewStore()
+	if err != nil {
+		return fmt.Errorf("failed to load prompts: %w", err)
+	}
+
+	workingDir, _ := os.Getwd()
+	projCtx := projectcontext.Load(workingDir)
+
+	systemPrompt, err := store.Render(promptFlag, length, projCtx.Content)
+	if err != nil {
+		return fmt.Errorf("failed to render prompt: %w", err)
+	}
+
+	req, err := llm.BuildRequest(
+		model,
+		systemPrompt,
+		input,
+		length,
+		cfg.Temperature,
+		false, // no streaming for generate
+		cfg.Models,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to build request: %w", err)
+	}
+
+	client := llm.NewClient(cfg.GetAPIKey())
+
+	// Show progress indicator
+	fmt.Fprintln(os.Stderr, output.GeneratingMessage(model, string(length), projCtx.Filename))
+	fmt.Fprintln(os.Stderr, "")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	startTime := time.Now()
+	result, usage, err := client.Complete(ctx, req)
+	durationMs := time.Since(startTime).Milliseconds()
+	if err != nil {
+		return fmt.Errorf("generation failed: %w", err)
+	}
+
+	// Print result to stdout (colorize if markdown)
+	fmt.Println(output.ColorizeMarkdown(result))
+
+	// Copy to clipboard by default unless disabled
+	shouldCopy := !noCopyFlag && !cfg.DisableCopy
+	if shouldCopy {
+		if warning := clipboard.CopyWithWarning(result); warning != "" {
+			fmt.Fprintln(os.Stderr, warning)
+		} else {
+			fmt.Fprintln(os.Stderr, "")
+			fmt.Fprintln(os.Stderr, output.CopiedMessage())
+		}
+	}
+
+	// Display token usage and completion time
+	fmt.Fprintln(os.Stderr, output.TokenUsageMessage(usage.PromptTokens, usage.CompletionTokens, durationMs))
+
+	return nil
+}
+
+// getInput gets input from args or stdin
+func getInput(args []string) (string, error) {
+	if len(args) > 0 {
+		return strings.Join(args, " "), nil
+	}
+
+	// Check if stdin has data
+	stat, err := os.Stdin.Stat()
+	if err != nil {
+		return "", err
+	}
+
+	// If stdin is a pipe or file, read from it
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		data, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			return "", fmt.Errorf("failed to read stdin: %w", err)
+		}
+		return string(data), nil
+	}
+
+	return "", nil
 }
