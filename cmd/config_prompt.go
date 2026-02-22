@@ -129,9 +129,19 @@ var configPromptAddCmd = &cobra.Command{
 		// Build length directives
 		lengthDirectives := make(map[string]string)
 
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintln(os.Stderr, output.Bold("Length Directives"))
+		fmt.Fprintln(os.Stderr, output.White("Controls how much output the LLM generates for each length mode. Two options:"))
+		fmt.Fprintln(os.Stderr, "  "+output.Cyan("Token count")+" — a plain integer sets the "+output.Bold("max_tokens")+" API parameter")
+		fmt.Fprintln(os.Stderr, "    "+output.Yellow("e.g. 300, 800, 1500"))
+		fmt.Fprintln(os.Stderr, "  "+output.Cyan("Text directive")+" — a string is injected into "+output.Bold("{{.LengthDirective}}")+" in your system prompt")
+		fmt.Fprintln(os.Stderr, "    "+output.Yellow(`e.g. "Be concise, 2-3 sentences max"`))
+		fmt.Fprintln(os.Stderr, output.White("Press Enter to skip a length (it will not be supported by this prompt)."))
+		fmt.Fprintln(os.Stderr, "")
+
 		// Get short directive
 		if shortDirective == "" {
-			fmt.Fprint(os.Stderr, output.Blue("Set Short length directive (tokens - recommended 300-500)")+" (optional, press Enter to skip): ")
+			fmt.Fprint(os.Stderr, output.Blue("  Short")+" (optional, press Enter to skip): ")
 			input, _ := reader.ReadString('\n')
 			shortDirective = strings.TrimSpace(input)
 		}
@@ -141,7 +151,7 @@ var configPromptAddCmd = &cobra.Command{
 
 		// Get medium directive
 		if mediumDirective == "" {
-			fmt.Fprint(os.Stderr, output.Blue("Set Medium length directive (tokens - recommended 700-1000)")+" (optional, press Enter to skip): ")
+			fmt.Fprint(os.Stderr, output.Blue("  Medium")+" (optional, press Enter to skip): ")
 			input, _ := reader.ReadString('\n')
 			mediumDirective = strings.TrimSpace(input)
 		}
@@ -151,7 +161,7 @@ var configPromptAddCmd = &cobra.Command{
 
 		// Get long directive
 		if longDirective == "" {
-			fmt.Fprint(os.Stderr, output.Blue("Set Long length directive (tokens - recommended 1500-2000)")+" (optional, press Enter to skip): ")
+			fmt.Fprint(os.Stderr, output.Blue("  Long")+" (optional, press Enter to skip): ")
 			input, _ := reader.ReadString('\n')
 			longDirective = strings.TrimSpace(input)
 		}

@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"text/template"
+	"unicode"
 
 	"github.com/raypaste/raypaste-cli/internal/config"
 	"github.com/raypaste/raypaste-cli/internal/llm"
@@ -146,8 +148,51 @@ func (s *Store) Get(name string) (*Prompt, error) {
 	return prompt, nil
 }
 
+// isNumericDirective returns true if s is a non-empty string consisting only of digits.
+// Such a directive is treated as a max_tokens override rather than injected text.
+func isNumericDirective(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, r := range s {
+		if !unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return true
+}
+
+// parseNumericDirective parses a numeric directive string to int.
+// Returns 0 if parsing fails.
+func parseNumericDirective(s string) int {
+	n, err := strconv.Atoi(s)
+	if err != nil || n <= 0 {
+		return 0
+	}
+	return n
+}
+
+// GetMaxTokensOverride returns a custom max_tokens value if the prompt's length directive
+// for the given length is a pure integer (digits only). Returns 0 if no override applies.
+func (s *Store) GetMaxTokensOverride(name string, length types.OutputLength) int {
+	prompt, err := s.Get(name)
+	if err != nil {
+		return 0
+	}
+	directive, ok := prompt.LengthDirectives[string(length)]
+	if !ok {
+		return 0
+	}
+	if !isNumericDirective(directive) {
+		return 0
+	}
+	return parseNumericDirective(directive)
+}
+
 // Render renders a prompt template with the given output length and project context.
 // The context string is injected into the template via {{.Context}}.
+// If the length directive for this prompt is a pure integer (used as a max_tokens override),
+// {{.LengthDirective}} is replaced with an empty string.
 func (s *Store) Render(name string, length types.OutputLength, context string) (string, error) {
 	prompt, err := s.Get(name)
 	if err != nil {
@@ -164,6 +209,11 @@ func (s *Store) Render(name string, length types.OutputLength, context string) (
 		}
 		// Fall back to default directive for prompts without specific directives
 		directive = llm.LengthParams[length].Directive
+	}
+
+	// Numeric directives act as max_tokens overrides; don't inject them as text.
+	if isNumericDirective(directive) {
+		directive = ""
 	}
 
 	// Parse template

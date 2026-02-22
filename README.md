@@ -317,8 +317,8 @@ This will guide you through entering the description, system prompt, and length 
 ```bash
 raypaste config prompt add ascii-art \
   --description "Convert text into ASCII art/emoji representation" \
-  --system "You are an ASCII art expert. Create creative ASCII art or emoji-based representations of the input text. Output length guidance: {{.LengthDirective}}. CRITICAL: Output ONLY the ASCII art itself, no explanations or preamble." \
-  --medium "Create a medium-sized ASCII art (5-15 lines) with good detail and creativity"
+  --system "You are an ASCII art expert. Create creative ASCII art or emoji-based representations of the input text. CRITICAL: Output ONLY the ASCII art itself, no explanations or preamble." \
+  --medium "400"
 ```
 
 **Try it out:**
@@ -349,6 +349,30 @@ raypaste config prompt show ascii-art
 raypaste config prompt remove ascii-art
 ```
 
+### Length Directives
+
+Each length mode (`short`, `medium`, `long`) can have a directive that controls how much output the LLM produces. There are two types:
+
+**Token count** — a plain integer sets the `max_tokens` API parameter directly. `{{.LengthDirective}}` in your system prompt is left empty.
+
+```yaml
+length_directives:
+  short: "200"
+  medium: "600"
+  long: "1500"
+```
+
+**Text directive** — a string is injected into `{{.LengthDirective}}` in your system prompt, giving the model natural-language guidance.
+
+```yaml
+length_directives:
+  short: "Be concise, 2-3 sentences max."
+  medium: "Provide a balanced response with moderate detail."
+  long: "Be thorough and comprehensive."
+```
+
+Both types can be mixed across lengths in the same prompt. When using token counts, omit `{{.LengthDirective}}` from your system prompt (or include it — it will render as empty). When using text directives, include `{{.LengthDirective}}` where you want the guidance injected.
+
 ### Creating Custom Prompts
 
 There are two ways to create custom prompts: interactively via the CLI or by creating YAML files directly in `~/.raypaste/prompts/`.
@@ -358,17 +382,26 @@ There are two ways to create custom prompts: interactively via the CLI or by cre
 Use the `config prompt add` command with interactive prompts:
 
 ```bash
-raypaste config prompt add code-review
+raypaste config prompt add sql
 ```
 
-Or with flags for non-interactive use:
+The interactive flow will explain directive types and prompt you for each length. Or use flags for non-interactive use:
 
 ```bash
+# Token count directives (controls max_tokens)
+raypaste config prompt add sql \
+  --description "Write SQL queries" \
+  --short "200" \
+  --medium "600" \
+  --long "1500" \
+  --system "Act as an expert database developer. Generate an optimized SQL query based on the input. If text is in single backticks (`), treat it as an exact quote and strictly maintain those exact table/column names, but automatically escape them (e.g., with quotes or brackets) if they clash with reserved SQL keywords. Otherwise, infer logical names. Wrap non-read operations (INSERT, UPDATE, DELETE) inside a transaction (BEGIN/COMMIT). Output length guidance: {{.LengthDirective}}. CRITICAL: Output ONLY raw, valid SQL code. No markdown formatting, explanations, or preamble."
+
+# Text directives (injected into {{.LengthDirective}})
 raypaste config prompt add code-review \
   --description "Generate a code review prompt" \
-  --short "Keep the review prompt concise, focusing on critical issues only." \
-  --medium "Generate a balanced review prompt covering functionality, style, and best practices." \
-  --long "Generate a comprehensive review prompt including security, performance, testing, and documentation." \
+  --short "Keep the review concise, focusing on critical issues only." \
+  --medium "Cover functionality, style, and best practices." \
+  --long "Include security, performance, testing, and documentation." \
   --system "You are a code review expert. Generate a detailed prompt for reviewing code. Output length guidance: {{.LengthDirective}}. Return only the generated prompt."
 ```
 
@@ -385,16 +418,24 @@ raypaste config prompt add code-review \
 Create YAML files directly in `~/.raypaste/prompts/`:
 
 ```yaml
-# ~/.raypaste/prompts/code-review.yaml
+# ~/.raypaste/prompts/sql.yaml — token count directives
+name: sql
+description: "Write SQL queries"
+system: "Act as an expert database developer. Generate an optimized SQL query based on the input. If text is in single backticks (`), treat it as an exact quote and strictly maintain those exact table/column names, but automatically escape them (e.g., with quotes or brackets) if they clash with reserved SQL keywords. Otherwise, infer logical names. Wrap non-read operations (INSERT, UPDATE, DELETE) inside a transaction (BEGIN/COMMIT). Output length guidance: {{.LengthDirective}}. CRITICAL: Output ONLY raw, valid SQL code. No markdown formatting, explanations, or preamble."
+length_directives:
+  short: "200"
+  medium: "600"
+  long: "1500"
+```
+
+```yaml
+# ~/.raypaste/prompts/code-review.yaml — text directives
 name: code-review
 description: "Generate a code review prompt"
 system: |
   You are a code review expert. Generate a detailed prompt for reviewing code.
-
   Output length guidance: {{.LengthDirective}}
-
   Return only the generated prompt.
-
 length_directives:
   short: "Keep the review prompt concise, focusing on critical issues only."
   medium: "Generate a balanced review prompt covering functionality, style, and best practices."
@@ -405,23 +446,22 @@ length_directives:
 
 ```yaml
 length_directives:
-  short: "Your short directive here"
-  medium: "Your medium directive here"
+  short: "200"
+  medium: "600"
   # long is intentionally omitted
 ```
-
-See `prompt.yaml.example` for a complete example, or read the full [Custom Prompt Guide](PROMPT_GUIDE.md).
 
 ### Using Custom Prompts
 
 ```bash
+raypaste "get all users joined with orders" -p sql
 raypaste "review my API code" -p code-review
 ```
 
 ### Template Variables
 
-- `{{.LengthDirective}}` - Automatically replaced with length-specific guidance
-- `{{.Context}}` - Automatically replaced with project context (when available)
+- `{{.LengthDirective}}` — Replaced with the text directive for the active length mode. Empty when a token-count directive is used.
+- `{{.Context}}` — Replaced with project context (when available)
 
 ## Project Context Awareness
 
@@ -440,7 +480,7 @@ raypaste looks for context in the following files (in order of priority):
 3. **`AGENTS.md`** - Agent-specific configuration
    - Documentation for AI agents working with your project
 
-When found, the context from these files is automatically included in your prompt generation, allowing the model to provide more accurate and contextually-aware responses.
+When found, the context from these files is injected in prompts containing the `{{.Context}}` template variable.
 
 ### How It Works
 

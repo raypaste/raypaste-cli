@@ -251,3 +251,90 @@ func TestDeletePromptNonExistent(t *testing.T) {
 		t.Error("DeletePrompt(nonexistent-prompt) should fail")
 	}
 }
+
+func TestIsNumericDirective(t *testing.T) {
+	tests := []struct {
+		input string
+		want  bool
+	}{
+		{"300", true},
+		{"1500", true},
+		{"0", true},
+		{"", false},
+		{"Keep it short", false},
+		{"300 tokens", false},
+		{"abc", false},
+		{"3.14", false},
+		{"-100", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			if got := isNumericDirective(tt.input); got != tt.want {
+				t.Errorf("isNumericDirective(%q) = %v, want %v", tt.input, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetMaxTokensOverride(t *testing.T) {
+	store := &Store{prompts: make(map[string]*Prompt)}
+	store.prompts["numeric-prompt"] = &Prompt{
+		Name:   "numeric-prompt",
+		System: "test {{.LengthDirective}}",
+		LengthDirectives: map[string]string{
+			"short":  "200",
+			"medium": "500",
+			"long":   "Generate a comprehensive prompt",
+		},
+	}
+	store.prompts["text-prompt"] = &Prompt{
+		Name:   "text-prompt",
+		System: "test {{.LengthDirective}}",
+		LengthDirectives: map[string]string{
+			"short": "Be concise",
+		},
+	}
+
+	tests := []struct {
+		name   string
+		prompt string
+		length types.OutputLength
+		want   int
+	}{
+		{"numeric short", "numeric-prompt", types.OutputLengthShort, 200},
+		{"numeric medium", "numeric-prompt", types.OutputLengthMedium, 500},
+		{"text long", "numeric-prompt", types.OutputLengthLong, 0},
+		{"text directive", "text-prompt", types.OutputLengthShort, 0},
+		{"nonexistent prompt", "nonexistent", types.OutputLengthShort, 0},
+		{"unsupported length", "text-prompt", types.OutputLengthMedium, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := store.GetMaxTokensOverride(tt.prompt, tt.length)
+			if got != tt.want {
+				t.Errorf("GetMaxTokensOverride(%q, %q) = %v, want %v", tt.prompt, tt.length, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRenderNumericDirectiveInjectsEmpty(t *testing.T) {
+	store := &Store{prompts: make(map[string]*Prompt)}
+	store.prompts["sql"] = &Prompt{
+		Name:   "sql",
+		System: "Act as SQL expert. {{.LengthDirective}} Output SQL only.",
+		LengthDirectives: map[string]string{
+			"short":  "200",
+			"medium": "500",
+		},
+	}
+
+	rendered, err := store.Render("sql", types.OutputLengthShort, "")
+	if err != nil {
+		t.Fatalf("Render() error = %v", err)
+	}
+	// Numeric directives must NOT appear in the rendered text
+	if rendered != "Act as SQL expert.  Output SQL only." {
+		t.Errorf("Render() with numeric directive should inject empty string, got: %q", rendered)
+	}
+}

@@ -163,6 +163,8 @@ func runGenerate(_ *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to render prompt: %w", err)
 	}
 
+	maxTokensOverride := store.GetMaxTokensOverride(promptFlag, length)
+
 	req, err := llm.BuildRequest(
 		model,
 		systemPrompt,
@@ -171,6 +173,7 @@ func runGenerate(_ *cobra.Command, args []string) error {
 		cfg.Temperature,
 		false, // no streaming for generate
 		cfg.Models,
+		maxTokensOverride,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to build request: %w", err)

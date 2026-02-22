@@ -51,20 +51,23 @@ func TestBuildRequest(t *testing.T) {
 	}
 
 	tests := []struct {
-		name       string
-		modelAlias string
-		wantModel  string
-		length     types.OutputLength
-		wantMaxTok int
-		wantMaxCmp int
-		wantEffort string
-		wantErr    bool
+		name              string
+		modelAlias        string
+		wantModel         string
+		length            types.OutputLength
+		maxTokensOverride int
+		wantMaxTok        int
+		wantMaxCmp        int
+		wantEffort        string
+		wantErr           bool
 	}{
-		{"short length", "test-model", "test/model", types.OutputLengthShort, 550, 0, "", false},
-		{"medium length", "test-model", "test/model", types.OutputLengthMedium, 850, 0, "", false},
-		{"long length", "test-model", "test/model", types.OutputLengthLong, 1600, 0, "", false},
-		{"gpt5 medium length", "test-gpt5", "openai/gpt-5-nano", types.OutputLengthMedium, 0, 850, "minimal", false},
-		{"invalid length", "test-model", "", types.OutputLength("invalid"), 0, 0, "", true},
+		{"short length", "test-model", "test/model", types.OutputLengthShort, 0, 550, 0, "", false},
+		{"medium length", "test-model", "test/model", types.OutputLengthMedium, 0, 850, 0, "", false},
+		{"long length", "test-model", "test/model", types.OutputLengthLong, 0, 1600, 0, "", false},
+		{"gpt5 medium length", "test-gpt5", "openai/gpt-5-nano", types.OutputLengthMedium, 0, 0, 850, "minimal", false},
+		{"invalid length", "test-model", "", types.OutputLength("invalid"), 0, 0, 0, "", true},
+		{"numeric override short", "test-model", "test/model", types.OutputLengthShort, 200, 200, 0, "", false},
+		{"numeric override gpt5", "test-gpt5", "openai/gpt-5-nano", types.OutputLengthMedium, 500, 0, 500, "minimal", false},
 	}
 
 	for _, tt := range tests {
@@ -77,6 +80,7 @@ func TestBuildRequest(t *testing.T) {
 				0.7,
 				false,
 				customModels,
+				tt.maxTokensOverride,
 			)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("BuildRequest() error = %v, wantErr %v", err, tt.wantErr)
