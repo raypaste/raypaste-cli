@@ -27,8 +27,9 @@ var LengthParams = map[types.OutputLength]types.LengthParams{
 	},
 }
 
-// BuildRequest builds a completion request with the given parameters
-func BuildRequest(modelAlias, systemPrompt, userPrompt string, length types.OutputLength, temperature float64, stream bool, customModels map[string]config.Model) (types.CompletionRequest, error) {
+// BuildRequest builds a completion request with the given parameters.
+// maxTokensOverride, if > 0, replaces the default max_tokens for the given length.
+func BuildRequest(modelAlias, systemPrompt, userPrompt string, length types.OutputLength, temperature float64, stream bool, customModels map[string]config.Model, maxTokensOverride int) (types.CompletionRequest, error) {
 	modelID, err := config.GetModelID(modelAlias, customModels)
 	if err != nil {
 		return types.CompletionRequest{}, fmt.Errorf("failed to resolve model: %w", err)
@@ -37,6 +38,11 @@ func BuildRequest(modelAlias, systemPrompt, userPrompt string, length types.Outp
 	lengthParams, ok := LengthParams[length]
 	if !ok {
 		return types.CompletionRequest{}, fmt.Errorf("invalid output length: %s", length)
+	}
+
+	maxTokens := lengthParams.MaxTokens
+	if maxTokensOverride > 0 {
+		maxTokens = maxTokensOverride
 	}
 
 	messages := []types.Message{
@@ -53,7 +59,7 @@ func BuildRequest(modelAlias, systemPrompt, userPrompt string, length types.Outp
 	req := types.CompletionRequest{
 		Model:       modelID,
 		Messages:    messages,
-		MaxTokens:   lengthParams.MaxTokens,
+		MaxTokens:   maxTokens,
 		Temperature: temperature,
 		Stream:      stream,
 	}
@@ -63,7 +69,7 @@ func BuildRequest(modelAlias, systemPrompt, userPrompt string, length types.Outp
 	// visible outputs caused by reasoning consuming the full budget.
 	if isGPT5Model(modelID) {
 		req.MaxTokens = 0
-		req.MaxCompletionTokens = lengthParams.MaxTokens
+		req.MaxCompletionTokens = maxTokens
 		req.ReasoningEffort = "minimal"
 	}
 

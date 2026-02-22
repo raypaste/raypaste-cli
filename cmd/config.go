@@ -18,7 +18,7 @@ import (
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manage raypaste configuration",
-	Long: output.Bold("Manage raypaste configuration") + output.Cyan(" settings.") + `
+	Long: output.Bold("Manage raypaste configuration") + output.Cyan(" settings and custom prompts.") + `
 
 This command allows you to view and modify configuration values.
 Configuration is stored in ~/.raypaste/config.yaml.
@@ -30,11 +30,22 @@ Configuration is stored in ~/.raypaste/config.yaml.
   ` + output.Green("disable-copy") + `   - Disable auto-copy to clipboard (true|false)
   ` + output.Green("temperature") + `    - Sampling temperature (0.0-2.0)
 
+` + output.Bold("Config subcommands:") + `
+  ` + output.Green("set [key] [value]") + `     - Set a configuration value
+  ` + output.Green("get [key]") + `            - Get a configuration value
+  ` + output.Green("prompt") + `               - Manage custom prompt templates
+
 ` + output.Bold("Examples:") + `
   raypaste config set api-key sk-or-v1-...
   raypaste config set default-model cerebras-llama-8b
   raypaste config set default-length short
-  raypaste config set disable-copy true`,
+  raypaste config set disable-copy true
+
+` + output.Bold("Custom Prompts:") + `
+  raypaste config prompt add code-review
+  raypaste config prompt list
+  raypaste config prompt show metaprompt
+  raypaste config prompt remove my-prompt`,
 }
 
 // configSetCmd represents the config set command

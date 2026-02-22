@@ -2,7 +2,7 @@
 
 ### Open-source ultra-fast AI completions right in your terminal.
 
-A lightning fast Go CLI for generating meta-prompts and AI completions via [OpenRouter](https://openrouter.ai/), with fast model routing, configurable output lengths, customizable prompts, and interactive REPL mode with streaming.
+A lightning fast Go CLI for generating meta-prompts and AI completions quickly via [OpenRouter](https://openrouter.ai/), with fast model routing, configurable output lengths, customizable prompts, and an interactive mode.
 
 - **Responses in Milliseconds**: Generate text completions in ~100-900ms using open-source models running on
   Cerebras chips.
@@ -11,15 +11,13 @@ A lightning fast Go CLI for generating meta-prompts and AI completions via [Open
 - **Custom Prompts**: Create and use your own prompts
 - **Flexible Configuration**: Configure via YAML, environment variables, or CLI flags
 - **OpenRouter Integration**: Raypaste can be used with many different LLM providers and models through OpenRouter's API
-- **Clipboard Integration**: Auto-copies output to clipboard (can be disabled)
 
 ## Installation
 
 ### Using Homebrew (macOS)
 
 ```bash
-brew tap raypaste/tap
-brew install --cask raypaste
+brew install --cask raypaste/tap/raypaste
 ```
 
 ### Using Go Install
@@ -49,14 +47,14 @@ sudo mv raypaste /usr/local/bin/
 
 1. **Get an OpenRouter API key** from [openrouter.ai/keys](https://openrouter.ai/keys)
 
-   1a. (optional): Get a **Cerebras** key from [cerebras.ai](https://www.cerebras.ai) to set up in _OpenRouter > Settings > BYOK (bring your own key) > Cerebras API key_.
+   1a. (Recommended): Get a **Cerebras** key from [cerebras.ai](https://www.cerebras.ai) to set up in _OpenRouter > Settings > BYOK (bring your own key) > Cerebras API key_.
 
 2. **Set your API key for Raypaste** (choose one method):
 
    **Option A: Config Command (Recommended)**
 
    ```bash
-   raypaste config set api-key your_api_key_here
+   raypaste config set api-key <your_api_key_here>
    ```
 
    **Option B: Environment Variable**
@@ -91,20 +89,12 @@ sudo mv raypaste /usr/local/bin/
 3. **Generate your first prompt**:
 
    ```bash
-   raypaste "help me write a blog post about Go CLI projects for social media platforms like reddit and linkedin"
+   raypaste "write a blog post about Go CLI projects for platforms like reddit and linkedin"
+   # Default prompt is `metaprompt` which aims to assist in rewriting your input
+   # as a better prompt to get better outputs
    ```
 
 ## Usage
-
-### Check Version
-
-Check the installed version of raypaste:
-
-```bash
-raypaste version
-raypaste --version
-raypaste -v
-```
 
 ### Instant Complete Mode
 
@@ -123,7 +113,6 @@ echo "my goal" | raypaste
 # Specify model
 raypaste "optimize this code" -m cerebras-gpt-oss-120b
 ```
-
 
 **Flags:**
 
@@ -149,21 +138,38 @@ raypaste config set temperature 0.8
 raypaste config get api-key
 raypaste config get default-model
 raypaste config get default-length
+
+# Manage custom prompts
+raypaste config prompt add my-prompt              # Add a new prompt interactively
+raypaste config prompt list                      # List all prompts
+raypaste config prompt show metaprompt           # Show prompt details
+raypaste config prompt remove my-prompt          # Remove a custom prompt
 ```
 
 **Available config keys:**
 
-| Key | Description | Type |
-|-----|-------------|------|
-| `api-key` | OpenRouter API key | string |
-| `default-model` | Default model alias or OpenRouter ID | string |
-| `default-length` | Default output length: `short`, `medium`, or `long` | string |
-| `disable-copy` | Disable auto-copy to clipboard | boolean |
-| `temperature` | Sampling temperature (0.0 to 2.0) | float |
+| Key              | Description                                         | Type    |
+| ---------------- | --------------------------------------------------- | ------- |
+| `api-key`        | OpenRouter API key                                  | string  |
+| `default-model`  | Default model alias or OpenRouter ID                | string  |
+| `default-length` | Default output length: `short`, `medium`, or `long` | string  |
+| `disable-copy`   | Disable auto-copy to clipboard                      | boolean |
+| `temperature`    | Sampling temperature (0.0 to 2.0)                   | float   |
+
+**Config prompt command:**
+
+The `config prompt` subcommand allows you to manage custom prompt templates programmatically:
+
+| Subcommand | Description                          | Example                                           |
+| ---------- | ------------------------------------ | ------------------------------------------------- |
+| `add`      | Add a new custom prompt              | `raypaste config prompt add code-review`          |
+| `list`     | List all prompts (built-in + custom) | `raypaste config prompt list`                     |
+| `show`     | Show prompt details                  | `raypaste config prompt show metaprompt`          |
+| `remove`   | Remove a custom prompt               | `raypaste config prompt remove my-prompt --force` |
 
 ### Interactive Mode
 
-Start an interactive REPL session with streaming output:
+Start an interactive session with streaming output:
 
 ```bash
 raypaste interactive
@@ -187,6 +193,16 @@ raypaste i
 
 - `Ctrl+C` - Cancel current generation
 - `Ctrl+D` - Exit REPL
+
+### Check Version
+
+Check the installed version of raypaste:
+
+```bash
+raypaste version
+raypaste --version
+raypaste -v
+```
 
 ## Configuration
 
@@ -220,46 +236,6 @@ raypaste config get default-model
 
 See [Config Command](#config-command) in the Usage section for all available options.
 
-### Config File
-
-Create `~/.raypaste/config.yaml`:
-
-```yaml
-# OpenRouter API key
-api_key: "your_api_key_here"
-
-# Default model
-default_model: cerebras-llama-8b
-
-# Default output length: short, medium, or long
-default_length: medium
-
-# Disable auto-copy to clipboard (copying is enabled by default)
-disable_copy: false
-
-# Temperature for generation (0.0 to 1.0)
-temperature: 0.7
-
-# Custom model definitions
-models:
-  my-custom-model:
-    id: "provider/model-name"
-    provider: "provider-name"
-    tier: "fast"
-```
-
-See `config.yaml.example` for a complete example.
-
-### Environment Variables
-
-```bash
-export RAYPASTE_API_KEY=your_api_key_here
-export RAYPASTE_DEFAULT_MODEL=cerebras-llama-8b
-export RAYPASTE_DEFAULT_LENGTH=medium
-```
-
-See `.env.example` for a complete example.
-
 ## Models
 
 ### Built-in Models
@@ -277,18 +253,18 @@ You can use any OpenRouter model by:
 1. **Direct model ID**: Use the full OpenRouter model ID as the model flag
 
    ```bash
-   raypaste "hello" -m "anthropic/claude-4.6-opus"
+   raypaste "hello" -m "anthropic/claude-sonnet-4.6"
    ```
 
 2. **Custom alias**: Define in `config.yaml`
    ```yaml
    models:
-     my-claude:
-       id: "anthropic/claude-4.6-opus"
+     sonnet-4.6:
+       id: "anthropic/claude-sonnet-4.6"
        provider: "anthropic"
        tier: "powerful"
    ```
-   Then use: `raypaste "hello" -m my-claude`
+   Then use: `raypaste "hello" -m sonnet-4.6`
 
 ## Output Lengths
 
@@ -328,26 +304,21 @@ raypaste includes the following built-in prompts:
 
 Let's create an ASCII art prompt to get you started. This prompt will only support medium mode:
 
-Running the below adds `ascii-art.yaml` with the below prompt info/content to your `.raypaste/prompts` folder.
+**Interactive mode:**
 
 ```bash
-mkdir -p ~/.raypaste/prompts && cat > ~/.raypaste/prompts/ascii-art.yaml << 'EOF'
-name: ascii-art
-description: "Convert text into ASCII art/emoji representation"
-system: |
-  You are an ASCII art expert. Create creative ASCII art or emoji-based representations of the input text.
+raypaste config prompt add ascii-art
+```
 
-  Output length guidance: {{.LengthDirective}}
+This will guide you through entering the description, system prompt, and length directives interactively.
 
-  CRITICAL:
-  - Output ONLY the ASCII art itself, no explanations or preamble
-  - Use creative arrangements of ASCII characters or emojis
-  - Make it visually appealing and recognizable
-  - Keep it readable in a terminal
+**Non-interactive mode (for scripting):**
 
-length_directives:
-  medium: "Create a medium-sized ASCII art (5-15 lines) with good detail and creativity"
-EOF
+```bash
+raypaste config prompt add ascii-art \
+  --description "Convert text into ASCII art/emoji representation" \
+  --system "You are an ASCII art expert. Create creative ASCII art or emoji-based representations of the input text. CRITICAL: Output ONLY the ASCII art itself, no explanations or preamble." \
+  --medium "400"
 ```
 
 **Try it out:**
@@ -358,21 +329,113 @@ raypaste "happy cat" -p ascii-art
 raypaste "rocket ship" -p ascii-art
 ```
 
-### Creating Custom Prompts
+### Managing Custom Prompts
 
-Create YAML files in `~/.raypaste/prompts/`:
+**List all prompts (built-in and custom):**
+
+```bash
+raypaste config prompt list
+```
+
+**Show prompt details:**
+
+```bash
+raypaste config prompt show ascii-art
+```
+
+**Remove a custom prompt:**
+
+```bash
+raypaste config prompt remove ascii-art
+```
+
+### Length Directives
+
+Each length mode (`short`, `medium`, `long`) can have a directive that controls how much output the LLM produces. There are two types:
+
+**Token count** — a plain integer sets the `max_tokens` API parameter directly. `{{.LengthDirective}}` in your system prompt is left empty.
 
 ```yaml
-# ~/.raypaste/prompts/code-review.yaml
+length_directives:
+  short: "200"
+  medium: "600"
+  long: "1500"
+```
+
+**Text directive** — a string is injected into `{{.LengthDirective}}` in your system prompt, giving the model natural-language guidance.
+
+```yaml
+length_directives:
+  short: "Be concise, 2-3 sentences max."
+  medium: "Provide a balanced response with moderate detail."
+  long: "Be thorough and comprehensive."
+```
+
+Both types can be mixed across lengths in the same prompt. When using token counts, omit `{{.LengthDirective}}` from your system prompt (or include it — it will render as empty). When using text directives, include `{{.LengthDirective}}` where you want the guidance injected.
+
+### Creating Custom Prompts
+
+There are two ways to create custom prompts: interactively via the CLI or by creating YAML files directly in `~/.raypaste/prompts/`.
+
+#### Method 1: Using the CLI (Recommended)
+
+Use the `config prompt add` command with interactive prompts:
+
+```bash
+raypaste config prompt add sql
+```
+
+The interactive flow will explain directive types and prompt you for each length. Or use flags for non-interactive use:
+
+```bash
+# Token count directives (controls max_tokens)
+raypaste config prompt add sql \
+  --description "Write SQL queries" \
+  --short "200" \
+  --medium "600" \
+  --long "1500" \
+  --system "Act as an expert database developer. Generate an optimized SQL query based on the input. If text is in single backticks (`), treat it as an exact quote and strictly maintain those exact table/column names, but automatically escape them (e.g., with quotes or brackets) if they clash with reserved SQL keywords. Otherwise, infer logical names. Wrap non-read operations (INSERT, UPDATE, DELETE) inside a transaction (BEGIN/COMMIT). Output length guidance: {{.LengthDirective}}. CRITICAL: Output ONLY raw, valid SQL code. No markdown formatting, explanations, or preamble."
+
+# Text directives (injected into {{.LengthDirective}})
+raypaste config prompt add code-review \
+  --description "Generate a code review prompt" \
+  --short "Keep the review concise, focusing on critical issues only." \
+  --medium "Cover functionality, style, and best practices." \
+  --long "Include security, performance, testing, and documentation." \
+  --system "You are a code review expert. Generate a detailed prompt for reviewing code. Output length guidance: {{.LengthDirective}}. Return only the generated prompt."
+```
+
+**Load system prompt from a file:**
+
+```bash
+raypaste config prompt add code-review \
+  --description "Generate a code review prompt" \
+  --from-file ./my-prompt.txt
+```
+
+#### Method 2: Manual YAML Files
+
+Create YAML files directly in `~/.raypaste/prompts/`:
+
+```yaml
+# ~/.raypaste/prompts/sql.yaml — token count directives
+name: sql
+description: "Write SQL queries"
+system: "Act as an expert database developer. Generate an optimized SQL query based on the input. If text is in single backticks (`), treat it as an exact quote and strictly maintain those exact table/column names, but automatically escape them (e.g., with quotes or brackets) if they clash with reserved SQL keywords. Otherwise, infer logical names. Wrap non-read operations (INSERT, UPDATE, DELETE) inside a transaction (BEGIN/COMMIT). Output length guidance: {{.LengthDirective}}. CRITICAL: Output ONLY raw, valid SQL code. No markdown formatting, explanations, or preamble."
+length_directives:
+  short: "200"
+  medium: "600"
+  long: "1500"
+```
+
+```yaml
+# ~/.raypaste/prompts/code-review.yaml — text directives
 name: code-review
 description: "Generate a code review prompt"
 system: |
   You are a code review expert. Generate a detailed prompt for reviewing code.
-
   Output length guidance: {{.LengthDirective}}
-
   Return only the generated prompt.
-
 length_directives:
   short: "Keep the review prompt concise, focusing on critical issues only."
   medium: "Generate a balanced review prompt covering functionality, style, and best practices."
@@ -383,23 +446,22 @@ length_directives:
 
 ```yaml
 length_directives:
-  short: "Your short directive here"
-  medium: "Your medium directive here"
+  short: "200"
+  medium: "600"
   # long is intentionally omitted
 ```
-
-See `prompt.yaml.example` for a complete example, or read the full [Custom Prompt Guide](PROMPT_GUIDE.md).
 
 ### Using Custom Prompts
 
 ```bash
+raypaste "get all users joined with orders" -p sql
 raypaste "review my API code" -p code-review
 ```
 
 ### Template Variables
 
-- `{{.LengthDirective}}` - Automatically replaced with length-specific guidance
-- `{{.Context}}` - Automatically replaced with project context (when available)
+- `{{.LengthDirective}}` — Replaced with the text directive for the active length mode. Empty when a token-count directive is used.
+- `{{.Context}}` — Replaced with project context (when available)
 
 ## Project Context Awareness
 
@@ -418,7 +480,7 @@ raypaste looks for context in the following files (in order of priority):
 3. **`AGENTS.md`** - Agent-specific configuration
    - Documentation for AI agents working with your project
 
-When found, the context from these files is automatically included in your prompt generation, allowing the model to provide more accurate and contextually-aware responses.
+When found, the context from these files is injected in prompts containing the `{{.Context}}` template variable.
 
 ### How It Works
 

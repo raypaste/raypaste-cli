@@ -146,7 +146,7 @@ func handleSlashCommand(line string, state *State, models map[string]config.Mode
 			return false
 		}
 		state.PromptName = args[0]
-		fmt.Printf("Prompt set to: %s\n", output.Bold(output.Green(state.PromptName)))
+		fmt.Printf(output.White("Prompt set to: %s\n"), output.Bold(output.Green(state.PromptName)))
 
 	case "/copy":
 		if state.LastResponse == "" {

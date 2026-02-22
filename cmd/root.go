@@ -50,6 +50,7 @@ with configurable output lengths and fast/small model routing.
   raypaste config set api-key ` + output.Green("sk-or-v1-...") + `        ` + output.Cyan("# Set your OpenRouter API key") + `
   raypaste config set default-model ` + output.Green("cerebras-llama-8b") + `  ` + output.Cyan("# Set default model") + `
   raypaste config ` + output.Green("get default-model") + `                     ` + output.Cyan("# View current settings") + `
+  raypaste config prompt ` + output.Green("add my-prompt") + `                 ` + output.Cyan("# Add a custom prompt") + `
 
 ` + output.Bold("Examples:") + `
   raypaste "help me write a blog post" ` + output.Green("--length short") + `
@@ -162,6 +163,8 @@ func runGenerate(_ *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to render prompt: %w", err)
 	}
 
+	maxTokensOverride := store.GetMaxTokensOverride(promptFlag, length)
+
 	req, err := llm.BuildRequest(
 		model,
 		systemPrompt,
@@ -170,6 +173,7 @@ func runGenerate(_ *cobra.Command, args []string) error {
 		cfg.Temperature,
 		false, // no streaming for generate
 		cfg.Models,
+		maxTokensOverride,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to build request: %w", err)

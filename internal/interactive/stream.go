@@ -19,6 +19,8 @@ func generateStreaming(ctx context.Context, input string, state *State, opts Opt
 		return fmt.Errorf("failed to render prompt: %w", err)
 	}
 
+	maxTokensOverride := state.Store.GetMaxTokensOverride(state.PromptName, state.Length)
+
 	req, err := llm.BuildRequest(
 		state.Model,
 		systemPrompt,
@@ -27,6 +29,7 @@ func generateStreaming(ctx context.Context, input string, state *State, opts Opt
 		opts.Temperature,
 		true, // streaming enabled
 		opts.Models,
+		maxTokensOverride,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to build request: %w", err)
