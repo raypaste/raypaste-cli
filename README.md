@@ -53,7 +53,13 @@ sudo mv raypaste /usr/local/bin/
 
 2. **Set your API key for Raypaste** (choose one method):
 
-   **Option A: Environment Variable (Recommended for quick start)**
+   **Option A: Config Command (Recommended)**
+
+   ```bash
+   raypaste config set api-key your_api_key_here
+   ```
+
+   **Option B: Environment Variable**
 
    ```bash
    export RAYPASTE_API_KEY=your_api_key_here
@@ -71,12 +77,12 @@ sudo mv raypaste /usr/local/bin/
    source ~/.bashrc
    ```
 
-   **Option B: Config File**
+   **Option C: Config File**
 
    ```bash
    mkdir -p ~/.raypaste
    cp config.yaml.example ~/.raypaste/config.yaml
-   # Edit ~/.raypaste/config.yaml and add your API ke
+   # Edit ~/.raypaste/config.yaml and add your API key
    nano ~/.raypaste/config.yaml
    ```
 
@@ -127,6 +133,34 @@ raypaste "optimize this code" -m cerebras-gpt-oss-120b
 - `--no-copy`: Disable auto-copy to clipboard (copying is enabled by default)
 - `--config`: Custom config file path
 
+### Config Command
+
+Manage configuration settings via the CLI:
+
+```bash
+# Set values
+raypaste config set api-key sk-or-v1-...
+raypaste config set default-model cerebras-llama-8b
+raypaste config set default-length short
+raypaste config set disable-copy true
+raypaste config set temperature 0.8
+
+# Get current values
+raypaste config get api-key
+raypaste config get default-model
+raypaste config get default-length
+```
+
+**Available config keys:**
+
+| Key | Description | Type |
+|-----|-------------|------|
+| `api-key` | OpenRouter API key | string |
+| `default-model` | Default model alias or OpenRouter ID | string |
+| `default-length` | Default output length: `short`, `medium`, or `long` | string |
+| `disable-copy` | Disable auto-copy to clipboard | boolean |
+| `temperature` | Sampling temperature (0.0 to 2.0) | float |
+
 ### Interactive Mode
 
 Start an interactive REPL session with streaming output:
@@ -164,6 +198,27 @@ Configuration is loaded in the following order (later sources override earlier o
 2. Config file (`~/.raypaste/config.yaml`)
 3. Environment variables (`RAYPASTE_*`)
 4. CLI flags
+
+### Config Command
+
+The easiest way to manage configuration is via the `config` command:
+
+```bash
+# Set your API key
+raypaste config set api-key sk-or-v1-...
+
+# Set default model
+raypaste config set default-model cerebras-llama-8b
+
+# Set default output length
+raypaste config set default-length medium
+
+# View current settings
+raypaste config get api-key
+raypaste config get default-model
+```
+
+See [Config Command](#config-command) in the Usage section for all available options.
 
 ### Config File
 

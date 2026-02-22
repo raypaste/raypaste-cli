@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.7] - 2026-02-21
+
+### Added
+
+- **Config command**: New `raypaste config` command for managing configuration via CLI
+  - `raypaste config set [key] [value]` - Set configuration values (api-key, default-model, default-length, disable-copy, temperature)
+  - `raypaste config get [key]` - Get configuration values
+  - Configuration is saved to `~/.raypaste/config.yaml`
+  - Config command does not require API key to be set, allowing users to set their API key via CLI
+- **Config documentation**: Added comprehensive documentation for config command usage in README.md and CLAUDE.md
+
 ## [0.2.6] - 2026-02-21
 
 ### Added
@@ -188,6 +199,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Flexible Configuration**: Multiple configuration methods
 - **Model Flexibility**: Use built-in aliases or any OpenRouter model ID
 
+[0.2.7]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.2.7
 [0.2.2]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.2.2
 [0.2.1]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.2.1
 [0.2.0]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.2.0

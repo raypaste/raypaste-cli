@@ -46,6 +46,11 @@ var rootCmd = &cobra.Command{
 A Cobra-based CLI that generates meta-prompts and general AI completions via OpenRouter,
 with configurable output lengths and fast/small model routing.
 
+` + output.Bold("Setup:") + `
+  raypaste config set api-key ` + output.Green("sk-or-v1-...") + `        ` + output.Cyan("# Set your OpenRouter API key") + `
+  raypaste config set default-model ` + output.Green("cerebras-llama-8b") + `  ` + output.Cyan("# Set default model") + `
+  raypaste config ` + output.Green("get default-model") + `                     ` + output.Cyan("# View current settings") + `
+
 ` + output.Bold("Examples:") + `
   raypaste "help me write a blog post" ` + output.Green("--length short") + `
   raypaste "analyze CSV data" ` + output.Green("-l long") + `
@@ -95,6 +100,17 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set
 func initConfig() {
+	// Skip API key validation for config commands (they can set the key)
+	if len(os.Args) > 1 && os.Args[1] == "config" {
+		var err error
+		cfg, err = config.LoadConfig(cfgFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	var err error
 	cfg, err = config.LoadConfig(cfgFile)
 	if err != nil {
@@ -110,7 +126,7 @@ func initConfig() {
 }
 
 // runGenerate handles the generation logic for raypaste "text"
-func runGenerate(cmd *cobra.Command, args []string) error {
+func runGenerate(_ *cobra.Command, args []string) error {
 	// Get input from args or stdin
 	input, err := getInput(args)
 	if err != nil {
