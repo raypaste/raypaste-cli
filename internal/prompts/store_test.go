@@ -175,3 +175,79 @@ func TestPromptLengthRestriction(t *testing.T) {
 		t.Error("bulletlist should NOT support long length")
 	}
 }
+
+func TestStoreIsBuiltIn(t *testing.T) {
+	store, err := NewStore()
+	if err != nil {
+		t.Fatalf("NewStore() error = %v", err)
+	}
+
+	tests := []struct {
+		name     string
+		prompt   string
+		expected bool
+	}{
+		{"metaprompt is built-in", "metaprompt", true},
+		{"bulletlist is built-in", "bulletlist", true},
+		{"non-existent is not built-in", "nonexistent", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := store.IsBuiltIn(tt.prompt)
+			if got != tt.expected {
+				t.Errorf("Store.IsBuiltIn(%s) = %v, want %v", tt.prompt, got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestSavePromptValidation(t *testing.T) {
+	store, err := NewStore()
+	if err != nil {
+		t.Fatalf("NewStore() error = %v", err)
+	}
+
+	// Test that saving a prompt without a name fails
+	prompt := &Prompt{
+		Name:        "",
+		Description: "Test description",
+		System:      "Test system prompt",
+	}
+
+	err = store.SavePrompt(prompt)
+	if err == nil {
+		t.Error("SavePrompt() should fail when name is empty")
+	}
+}
+
+func TestDeletePromptBuiltIn(t *testing.T) {
+	store, err := NewStore()
+	if err != nil {
+		t.Fatalf("NewStore() error = %v", err)
+	}
+
+	// Test that deleting a built-in prompt fails
+	err = store.DeletePrompt("metaprompt")
+	if err == nil {
+		t.Error("DeletePrompt(metaprompt) should fail for built-in prompts")
+	}
+
+	err = store.DeletePrompt("bulletlist")
+	if err == nil {
+		t.Error("DeletePrompt(bulletlist) should fail for built-in prompts")
+	}
+}
+
+func TestDeletePromptNonExistent(t *testing.T) {
+	store, err := NewStore()
+	if err != nil {
+		t.Fatalf("NewStore() error = %v", err)
+	}
+
+	// Test that deleting a non-existent prompt fails
+	err = store.DeletePrompt("nonexistent-prompt")
+	if err == nil {
+		t.Error("DeletePrompt(nonexistent-prompt) should fail")
+	}
+}

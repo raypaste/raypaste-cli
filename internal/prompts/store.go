@@ -193,3 +193,82 @@ func (s *Store) List() []string {
 	}
 	return names
 }
+
+// SavePrompt saves a custom prompt to the user's prompts directory
+func (s *Store) SavePrompt(prompt *Prompt) error {
+	if prompt.Name == "" {
+		return fmt.Errorf("prompt name is required")
+	}
+
+	promptsDir, err := config.GetPromptsDir()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the prompts directory exists
+	if err := os.MkdirAll(promptsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create prompts directory: %w", err)
+	}
+
+	// Marshal the prompt to YAML
+	data, err := yaml.Marshal(prompt)
+	if err != nil {
+		return fmt.Errorf("failed to marshal prompt to YAML: %w", err)
+	}
+
+	// Write to file
+	filename := filepath.Join(promptsDir, prompt.Name+".yaml")
+	if err := os.WriteFile(filename, data, 0644); err != nil {
+		return fmt.Errorf("failed to write prompt file: %w", err)
+	}
+
+	// Add to the store's prompts map
+	s.prompts[prompt.Name] = prompt
+
+	return nil
+}
+
+// DeletePrompt removes a custom prompt from the user's prompts directory
+func (s *Store) DeletePrompt(name string) error {
+	// Check if prompt exists
+	prompt, ok := s.prompts[name]
+	if !ok {
+		return fmt.Errorf("prompt not found: %s", name)
+	}
+
+	// Check if it's a built-in prompt (cannot delete built-ins)
+	if prompt.Name == defaults.MetaPromptName || prompt.Name == defaults.BulletListName {
+		return fmt.Errorf("cannot delete built-in prompt: %s", name)
+	}
+
+	promptsDir, err := config.GetPromptsDir()
+	if err != nil {
+		return err
+	}
+
+	// Try to delete the file (may not exist if loaded from elsewhere)
+	filename := filepath.Join(promptsDir, name+".yaml")
+	if _, err := os.Stat(filename); err == nil {
+		if err := os.Remove(filename); err != nil {
+			return fmt.Errorf("failed to delete prompt file: %w", err)
+		}
+	}
+
+	// Also try .yml extension
+	filenameYml := filepath.Join(promptsDir, name+".yml")
+	if _, err := os.Stat(filenameYml); err == nil {
+		if err := os.Remove(filenameYml); err != nil {
+			return fmt.Errorf("failed to delete prompt file: %w", err)
+		}
+	}
+
+	// Remove from the store's prompts map
+	delete(s.prompts, name)
+
+	return nil
+}
+
+// IsBuiltIn checks if a prompt is a built-in prompt
+func (s *Store) IsBuiltIn(name string) bool {
+	return name == defaults.MetaPromptName || name == defaults.BulletListName
+}
