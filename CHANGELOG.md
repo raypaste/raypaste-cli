@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-02-22
+
+### Added
+
+- **Custom prompt management**: New `raypaste config prompt` subcommands for managing custom prompt templates
+  - `raypaste config prompt add [name]` - Add new custom prompts via interactive editor
+  - `raypaste config prompt edit [name]` - Edit existing custom prompts
+  - `raypaste config prompt delete [name]` - Delete custom prompts
+  - `raypaste config prompt list` - List all available prompts (built-in and custom)
+  - Custom prompts are stored in `~/.raypaste/prompts/` and persist across sessions
+- **Numeric length directives**: Support for numeric length values that correlate directly with max token parameters
+  - Use exact token values like `300`, `800`, `1500` for precise control
+  - Supports custom numeric values (100-10000 range) for fine-tuned output length
+  - Maintains backward compatibility with `short`, `medium`, `long` aliases
+  - Length selection now shows corresponding token counts for clarity
+
 ## [0.2.7] - 2026-02-21
 
 ### Added
@@ -199,6 +215,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Flexible Configuration**: Multiple configuration methods
 - **Model Flexibility**: Use built-in aliases or any OpenRouter model ID
 
+[0.3.0]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.3.0
 [0.2.7]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.2.7
 [0.2.2]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.2.2
 [0.2.1]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.2.1
