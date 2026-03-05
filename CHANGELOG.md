@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.1] - 2026-03-05
 
+### Changed
+
+- **Prompt guide rewrite**: Updated `docs/prompts/PROMPT_GUIDE.md` to reflect v0.3.0
+  - CLI-first prompt management
+  - Integer token directives
+  - `{{.Context}}` template variable
+- **Prompt example update**: Updated `prompt.yaml.example` with correct default directive text and integer directive documentation
+
+### Removed
+
+- **Root PROMPT_GUIDE.md**: Moved to `docs/prompts/` to consolidate documentation
+
+## [0.3.0] - 2026-02-22
+
 ### Added
 
 - **Custom prompt management**: New `raypaste config prompt` subcommands for managing custom prompt templates
