@@ -144,6 +144,14 @@ var configSetCmd = &cobra.Command{
 	},
 }
 
+// maskSecret returns a masked representation of a secret, showing only the last 4 characters.
+func maskSecret(s string) string {
+	if len(s) <= 4 {
+		return "****"
+	}
+	return strings.Repeat("*", len(s)-4) + s[len(s)-4:]
+}
+
 // configGetCmd represents the config get command
 var configGetCmd = &cobra.Command{
 	Use:   "get [key]",
@@ -162,10 +170,11 @@ var configGetCmd = &cobra.Command{
 		switch key {
 		case "openrouter-api-key":
 			if key := cfg.GetOpenRouterAPIKey(); key != "" {
+				masked := maskSecret(key)
 				if cfg.OpenRouterAPIKey != "" {
-					fmt.Println(key)
+					fmt.Println(masked)
 				} else {
-					fmt.Println(key + " (from environment)")
+					fmt.Println(masked + " (from environment)")
 				}
 			} else {
 				fmt.Println("not set")
@@ -173,10 +182,11 @@ var configGetCmd = &cobra.Command{
 
 		case "cerebras-api-key":
 			if key := cfg.GetCerebrasAPIKey(); key != "" {
+				masked := maskSecret(key)
 				if cfg.CerebrasAPIKey != "" {
-					fmt.Println(key)
+					fmt.Println(masked)
 				} else {
-					fmt.Println(key + " (from environment)")
+					fmt.Println(masked + " (from environment)")
 				}
 			} else {
 				fmt.Println("not set")
@@ -184,9 +194,9 @@ var configGetCmd = &cobra.Command{
 
 		case "api-key":
 			if cfg.APIKey != "" {
-				fmt.Println(cfg.APIKey)
+				fmt.Println(maskSecret(cfg.APIKey))
 			} else if envKey := os.Getenv("RAYPASTE_API_KEY"); envKey != "" {
-				fmt.Println(envKey + " (from environment)")
+				fmt.Println(maskSecret(envKey) + " (from environment)")
 			} else {
 				fmt.Println("not set")
 			}
