@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-03-13
+
+### Added
+
+- **Multi-provider API key support**: Configure separate API keys for different providers
+  - `CEREBRAS_API_KEY` / `cerebras-api-key` — direct Cerebras inference (fastest path)
+  - `OPENROUTER_API_KEY` / `openrouter-api-key` — OpenRouter multi-provider access
+  - `RAYPASTE_API_KEY` / `api-key` — reserved for future Raypaste backend
+- **Smart provider routing**: Automatically routes requests to the best available provider
+  - Cerebras models with a Cerebras key go direct (eliminates OpenRouter hop)
+  - Falls back to OpenRouter when no direct key is available
+  - Legacy `api_key` with `sk-or-` prefix is treated as OpenRouter key with migration notice
+- **Direct provider model IDs**: Models now carry a `DirectID` field for provider-native model identifiers (e.g., `llama-3.1-8b-instruct` for Cerebras direct vs `meta-llama/llama-3.1-8b-instruct` for OpenRouter)
+- **New config commands**: `raypaste config set cerebras-api-key` and `raypaste config set openrouter-api-key`
+- **Comprehensive tests**: Table-driven tests for `ResolveProviderKey`, `HasAnyAPIKey`, provider-specific getters, and `BuildRequest` with direct provider routing
+
+### Changed
+
+- **`NewClient` signature**: Now takes `(provider, apiKey)` instead of just `(apiKey)` — routes to the correct base URL and sets provider-appropriate headers
+- **`BuildRequest` signature**: Now takes a `provider` parameter to select the correct model ID (OpenRouter ID vs direct provider ID)
+- **API key validation**: `initConfig` now checks `HasAnyAPIKey()` instead of a single `GetAPIKey()`, with improved error messaging listing all key options
+- **Updated help text and documentation**: CLI help, README, and config command descriptions reflect the new multi-provider setup
+
 ## [0.3.1] - 2026-03-05
 
 ### Changed
@@ -229,6 +252,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Flexible Configuration**: Multiple configuration methods
 - **Model Flexibility**: Use built-in aliases or any OpenRouter model ID
 
+[0.4.0]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.4.0
+[0.3.1]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.3.1
 [0.3.0]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.3.0
 [0.2.7]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.2.7
 [0.2.2]: https://github.com/raypaste/raypaste-cli/releases/tag/v0.2.2

@@ -29,10 +29,21 @@ var LengthParams = map[types.OutputLength]types.LengthParams{
 
 // BuildRequest builds a completion request with the given parameters.
 // maxTokensOverride, if > 0, replaces the default max_tokens for the given length.
-func BuildRequest(modelAlias, systemPrompt, userPrompt string, length types.OutputLength, temperature float64, stream bool, customModels map[string]config.Model, maxTokensOverride int) (types.CompletionRequest, error) {
-	modelID, err := config.GetModelID(modelAlias, customModels)
+// provider determines which model ID to use: direct provider ID or OpenRouter ID.
+func BuildRequest(modelAlias, systemPrompt, userPrompt string, length types.OutputLength, temperature float64, stream bool, customModels map[string]config.Model, maxTokensOverride int, provider string) (types.CompletionRequest, error) {
+	model, err := config.ResolveModel(modelAlias, customModels)
 	if err != nil {
 		return types.CompletionRequest{}, fmt.Errorf("failed to resolve model: %w", err)
+	}
+
+	// Use DirectID when going straight to the provider, fall back to OpenRouter ID
+	modelID := model.ID
+	if provider != "openrouter" && model.DirectID != "" {
+		modelID = model.DirectID
+	}
+
+	if modelID == "" {
+		return types.CompletionRequest{}, fmt.Errorf("model %s has no ID for provider %s", modelAlias, provider)
 	}
 
 	lengthParams, ok := LengthParams[length]

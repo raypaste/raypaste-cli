@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/raypaste/raypaste-cli/pkg/types"
 
@@ -15,13 +16,15 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	APIKey        string             `mapstructure:"api_key"`
-	DefaultModel  string             `mapstructure:"default_model"`
-	DefaultLength types.OutputLength `mapstructure:"default_length"`
-	AutoCopy      bool               `mapstructure:"auto_copy"`    // Deprecated: kept for backward compatibility
-	DisableCopy   bool               `mapstructure:"disable_copy"` // New field to disable clipboard copying
-	Models        map[string]Model   `mapstructure:"models"`
-	Temperature   float64            `mapstructure:"temperature"`
+	APIKey           string             `mapstructure:"api_key"`
+	OpenRouterAPIKey string             `mapstructure:"openrouter_api_key"`
+	CerebrasAPIKey   string             `mapstructure:"cerebras_api_key"`
+	DefaultModel     string             `mapstructure:"default_model"`
+	DefaultLength    types.OutputLength `mapstructure:"default_length"`
+	AutoCopy         bool               `mapstructure:"auto_copy"`    // Deprecated: kept for backward compatibility
+	DisableCopy      bool               `mapstructure:"disable_copy"` // New field to disable clipboard copying
+	Models           map[string]Model   `mapstructure:"models"`
+	Temperature      float64            `mapstructure:"temperature"`
 }
 
 var globalConfig *Config
@@ -71,6 +74,8 @@ func LoadConfig(configPath string) (*Config, error) {
 
 	// Bind specific env vars
 	_ = v.BindEnv("api_key", "RAYPASTE_API_KEY")
+	_ = v.BindEnv("openrouter_api_key", "OPENROUTER_API_KEY")
+	_ = v.BindEnv("cerebras_api_key", "CEREBRAS_API_KEY")
 	_ = v.BindEnv("default_model", "RAYPASTE_DEFAULT_MODEL")
 	_ = v.BindEnv("default_length", "RAYPASTE_DEFAULT_LENGTH")
 	_ = v.BindEnv("disable_copy", "RAYPASTE_DISABLE_COPY")
@@ -124,6 +129,63 @@ func (c *Config) GetAPIKey() string {
 		return c.APIKey
 	}
 	return os.Getenv("RAYPASTE_API_KEY")
+}
+
+// ProviderKey holds the resolved provider name and API key for a request
+type ProviderKey struct {
+	Provider string
+	APIKey   string
+}
+
+// ResolveProviderKey determines which provider and API key to use for a given model.
+func (c *Config) ResolveProviderKey(modelAlias string) (ProviderKey, error) {
+	model, err := ResolveModel(modelAlias, c.Models)
+	if err != nil {
+		return ProviderKey{}, err
+	}
+
+	// 1. If model provider is "cerebras" and we have a Cerebras key, go direct
+	if model.Provider == "cerebras" {
+		if key := c.GetCerebrasAPIKey(); key != "" {
+			return ProviderKey{Provider: "cerebras", APIKey: key}, nil
+		}
+	}
+
+	// 2. If we have an OpenRouter key, route through OpenRouter
+	if key := c.GetOpenRouterAPIKey(); key != "" {
+		return ProviderKey{Provider: "openrouter", APIKey: key}, nil
+	}
+
+	// 3. Legacy fallback: treat api_key as OpenRouter if it looks like one
+	if key := c.GetAPIKey(); key != "" {
+		if strings.HasPrefix(key, "sk-or-") {
+			fmt.Fprintln(os.Stderr, "Warning: using api_key as OpenRouter key. Please run: raypaste config set openrouter-api-key "+key)
+			return ProviderKey{Provider: "openrouter", APIKey: key}, nil
+		}
+	}
+
+	return ProviderKey{}, fmt.Errorf("no API key configured for provider %q. Set OPENROUTER_API_KEY or CEREBRAS_API_KEY", model.Provider)
+}
+
+// GetOpenRouterAPIKey retrieves the OpenRouter API key from config or environment
+func (c *Config) GetOpenRouterAPIKey() string {
+	if c.OpenRouterAPIKey != "" {
+		return c.OpenRouterAPIKey
+	}
+	return os.Getenv("OPENROUTER_API_KEY")
+}
+
+// GetCerebrasAPIKey retrieves the Cerebras API key from config or environment
+func (c *Config) GetCerebrasAPIKey() string {
+	if c.CerebrasAPIKey != "" {
+		return c.CerebrasAPIKey
+	}
+	return os.Getenv("CEREBRAS_API_KEY")
+}
+
+// HasAnyAPIKey returns true if any API key is configured (provider-specific or legacy)
+func (c *Config) HasAnyAPIKey() bool {
+	return c.GetOpenRouterAPIKey() != "" || c.GetCerebrasAPIKey() != "" || c.GetAPIKey() != ""
 }
 
 // GetDefaultModel returns the default model setting
@@ -192,6 +254,8 @@ func (c *Config) SaveTo(path string) error {
 
 	// Set all current values
 	v.Set("api_key", c.APIKey)
+	v.Set("openrouter_api_key", c.OpenRouterAPIKey)
+	v.Set("cerebras_api_key", c.CerebrasAPIKey)
 	v.Set("default_model", c.DefaultModel)
 	v.Set("default_length", c.DefaultLength)
 	v.Set("disable_copy", c.DisableCopy)

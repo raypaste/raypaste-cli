@@ -75,7 +75,7 @@ func TestGetBodySetForRetry(t *testing.T) {
 	defer server.Close()
 
 	// Create client with test server URL
-	client := NewClient("test-key")
+	client := NewClient("openrouter", "test-key")
 
 	// Create a request
 	req := types.CompletionRequest{
@@ -170,7 +170,7 @@ func TestRetryWithBodyRecreation(t *testing.T) {
 	defer server.Close()
 
 	// Create client with test server URL
-	client := NewClient("test-key")
+	client := NewClient("openrouter", "test-key")
 
 	// Create a request
 	req := types.CompletionRequest{

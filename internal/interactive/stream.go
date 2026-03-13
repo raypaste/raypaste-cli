@@ -30,6 +30,7 @@ func generateStreaming(ctx context.Context, input string, state *State, opts Opt
 		true, // streaming enabled
 		opts.Models,
 		maxTokensOverride,
+		state.Provider,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to build request: %w", err)

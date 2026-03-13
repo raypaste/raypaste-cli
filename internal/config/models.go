@@ -8,6 +8,7 @@ import "fmt"
 // Model represents an LLM model configuration
 type Model struct {
 	ID       string `yaml:"id" mapstructure:"id"`
+	DirectID string `yaml:"direct_id" mapstructure:"direct_id"`
 	Provider string `yaml:"provider" mapstructure:"provider"`
 	Tier     string `yaml:"tier" mapstructure:"tier"`
 }
@@ -16,11 +17,13 @@ type Model struct {
 var DefaultModels = map[string]Model{
 	"cerebras-llama-8b": {
 		ID:       "meta-llama/llama-3.1-8b-instruct",
+		DirectID: "llama-3.1-8b-instruct",
 		Provider: "cerebras",
 		Tier:     "fast",
 	},
 	"cerebras-gpt-oss-120b": {
 		ID:       "openai/gpt-oss-120b",
+		DirectID: "gpt-oss-120b",
 		Provider: "cerebras",
 		Tier:     "balanced",
 	},

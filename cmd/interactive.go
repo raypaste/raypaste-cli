@@ -63,6 +63,13 @@ func runInteractive(cmd *cobra.Command, args []string) error {
 		state.Model = cfg.GetDefaultModel()
 	}
 
+	// Resolve provider and API key for the chosen model
+	pk, err := cfg.ResolveProviderKey(state.Model)
+	if err != nil {
+		return err
+	}
+	state.Provider = pk.Provider
+
 	length, err := config.ValidateOutputLength(lengthFlag)
 	if err != nil {
 		return err
@@ -76,7 +83,7 @@ func runInteractive(cmd *cobra.Command, args []string) error {
 
 	workingDir, _ := os.Getwd()
 	state.ProjCtx = projectcontext.Load(workingDir)
-	state.Client = llm.NewClient(cfg.GetAPIKey())
+	state.Client = llm.NewClient(pk.Provider, pk.APIKey)
 
 	return interactive.Run(state, interactive.Options{
 		Temperature: cfg.Temperature,

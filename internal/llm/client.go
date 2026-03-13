@@ -17,19 +17,29 @@ import (
 
 const (
 	openRouterBaseURL = "https://openrouter.ai/api/v1/chat/completions"
+	cerebrasBaseURL   = "https://api.cerebras.ai/v1/chat/completions"
 	defaultTimeout    = 30 * time.Second
 )
 
-// Client represents an OpenRouter API client
+// Client represents an LLM API client that routes to different providers
 type Client struct {
 	apiKey     string
+	baseURL    string
+	provider   string
 	httpClient *http.Client
 }
 
-// NewClient creates a new OpenRouter API client
-func NewClient(apiKey string) *Client {
+// NewClient creates a new LLM API client for the given provider
+func NewClient(provider, apiKey string) *Client {
+	baseURL := openRouterBaseURL
+	if provider == "cerebras" {
+		baseURL = cerebrasBaseURL
+	}
+
 	return &Client{
-		apiKey: apiKey,
+		apiKey:   apiKey,
+		baseURL:  baseURL,
+		provider: provider,
 		httpClient: &http.Client{
 			Timeout: defaultTimeout,
 		},
@@ -48,7 +58,7 @@ func (c *Client) Complete(ctx context.Context, req types.CompletionRequest) (str
 	}
 
 	// Create HTTP request
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", openRouterBaseURL, bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", c.baseURL, bytes.NewReader(body))
 	if err != nil {
 		return "", types.TokenUsage{}, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -106,7 +116,7 @@ func (c *Client) StreamComplete(ctx context.Context, req types.CompletionRequest
 	}
 
 	// Create HTTP request
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", openRouterBaseURL, bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", c.baseURL, bytes.NewReader(body))
 	if err != nil {
 		return types.TokenUsage{}, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -155,12 +165,15 @@ func (c *Client) StreamComplete(ctx context.Context, req types.CompletionRequest
 	return processStreamingResponseWithUsage(resp.Body, callback)
 }
 
-// setHeaders sets the required headers for OpenRouter API
+// setHeaders sets the required headers based on the provider
 func (c *Client) setHeaders(req *http.Request) {
 	req.Header.Set("Authorization", "Bearer "+c.apiKey)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("HTTP-Referer", "https://github.com/raypaste/raypaste-cli")
-	req.Header.Set("X-Title", "raypaste-cli")
+
+	if c.provider == "openrouter" {
+		req.Header.Set("HTTP-Referer", "https://github.com/raypaste/raypaste-cli")
+		req.Header.Set("X-Title", "raypaste-cli")
+	}
 }
 
 // doWithRetry sends the request with simple retry logic

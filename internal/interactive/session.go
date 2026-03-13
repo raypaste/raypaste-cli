@@ -21,6 +21,7 @@ import (
 // State holds the REPL session state.
 type State struct {
 	Model        string
+	Provider     string // resolved provider name ("openrouter", "cerebras")
 	Length       types.OutputLength
 	PromptName   string
 	LastResponse string
