@@ -2,7 +2,7 @@
 
 ### Open-source ultra-fast AI completions right in your terminal.
 
-A lightning fast Go CLI for generating meta-prompts and AI completions quickly via [OpenRouter](https://openrouter.ai/), with fast model routing, configurable output lengths, customizable prompts, and an interactive mode.
+A lightning fast Go CLI for generating meta-prompts and AI completions quickly, with fast model routing, configurable output lengths, customizable prompts, and an interactive mode. Supports direct [Cerebras](https://www.cerebras.ai/) inference and multi-provider access via [OpenRouter](https://openrouter.ai/).
 
 - **Responses in Milliseconds**: Generate text completions in ~100-900ms using open-source models running on
   Cerebras chips.
@@ -10,7 +10,8 @@ A lightning fast Go CLI for generating meta-prompts and AI completions quickly v
 - **Project Context Awareness**: Automatically loads context from `CLAUDE.md`, `AGENTS.md`, or `.cursor/rules/` files to inform prompt generation
 - **Custom Prompts**: Create and use your own prompts
 - **Flexible Configuration**: Configure via YAML, environment variables, or CLI flags
-- **OpenRouter Integration**: Raypaste can be used with many different LLM providers and models through OpenRouter's API
+- **Direct Provider Access**: Connect directly to Cerebras for the fastest possible inference, or use OpenRouter for multi-provider access
+- **OpenRouter Integration**: Raypaste can also be used with many different LLM providers and models through OpenRouter's API
 
 ## Installation
 
@@ -45,33 +46,42 @@ sudo mv raypaste /usr/local/bin/
 
 ## Quick Start
 
-1. **Get an OpenRouter API key** from [openrouter.ai/keys](https://openrouter.ai/keys)
+1. **Get an API key** (choose one or both):
 
-   1a. (Recommended): Get a **Cerebras** key from [cerebras.ai](https://www.cerebras.ai) to set up in _OpenRouter > Settings > BYOK (bring your own key) > Cerebras API key_.
+   - **Cerebras (Recommended for speed)**: Get a key from [cloud.cerebras.ai](https://cloud.cerebras.ai/) for direct, ultra-fast inference
+   - **OpenRouter (Multi-provider)**: Get a key from [openrouter.ai/keys](https://openrouter.ai/keys) for access to many providers/models
 
-2. **Set your API key for Raypaste** (choose one method):
+2. **Set your API key(s)** (choose one method):
 
    **Option A: Config Command (Recommended)**
 
    ```bash
-   raypaste config set api-key <your_api_key_here>
+   # For direct Cerebras access (fastest)
+   raypaste config set cerebras-api-key <your_cerebras_key>
+
+   # For OpenRouter multi-provider access
+   raypaste config set openrouter-api-key <your_openrouter_key>
+
+   # You can set both — Cerebras models will go direct, others via OpenRouter
    ```
 
-   **Option B: Environment Variable**
+   **Option B: Environment Variables**
 
    ```bash
-   export RAYPASTE_API_KEY=your_api_key_here
+   export CEREBRAS_API_KEY=your_cerebras_key
+   # and/or
+   export OPENROUTER_API_KEY=your_openrouter_key
    ```
 
    To make it permanent, add to your shell config:
 
    ```bash
    # For zsh (macOS default)
-   echo 'export RAYPASTE_API_KEY=your_api_key_here' >> ~/.zshrc
+   echo 'export CEREBRAS_API_KEY=your_cerebras_key' >> ~/.zshrc
    source ~/.zshrc
 
    # For bash
-   echo 'export RAYPASTE_API_KEY=your_api_key_here' >> ~/.bashrc
+   echo 'export CEREBRAS_API_KEY=your_cerebras_key' >> ~/.bashrc
    source ~/.bashrc
    ```
 
@@ -80,11 +90,16 @@ sudo mv raypaste /usr/local/bin/
    ```bash
    mkdir -p ~/.raypaste
    cp config.yaml.example ~/.raypaste/config.yaml
-   # Edit ~/.raypaste/config.yaml and add your API key
+   # Edit ~/.raypaste/config.yaml and add your API key(s)
    nano ~/.raypaste/config.yaml
    ```
 
    **Note**: The `.env` file in the project directory is for reference only. Go programs don't automatically load `.env` files. You must either export the environment variable or use the config file at `~/.raypaste/config.yaml`.
+
+   **API Key Resolution**: When you select a model, raypaste picks the best available route:
+   1. If the model's provider has a direct key (e.g., Cerebras model + `CEREBRAS_API_KEY`), it goes direct
+   2. Otherwise, it falls back to OpenRouter if `OPENROUTER_API_KEY` is set
+   3. Legacy `RAYPASTE_API_KEY` / `api-key` with an `sk-or-` prefix is treated as an OpenRouter key (with a migration notice)
 
 3. **Generate your first prompt**:
 
@@ -127,15 +142,19 @@ raypaste "optimize this code" -m cerebras-gpt-oss-120b
 Manage configuration settings via the CLI:
 
 ```bash
-# Set values
-raypaste config set api-key sk-or-v1-...
+# Set API keys
+raypaste config set cerebras-api-key csk-...       # Direct Cerebras access
+raypaste config set openrouter-api-key sk-or-v1-... # OpenRouter access
+
+# Set other values
 raypaste config set default-model cerebras-llama-8b
 raypaste config set default-length short
 raypaste config set disable-copy true
 raypaste config set temperature 0.8
 
 # Get current values
-raypaste config get api-key
+raypaste config get cerebras-api-key
+raypaste config get openrouter-api-key
 raypaste config get default-model
 raypaste config get default-length
 
@@ -148,13 +167,15 @@ raypaste config prompt remove my-prompt          # Remove a custom prompt
 
 **Available config keys:**
 
-| Key              | Description                                         | Type    |
-| ---------------- | --------------------------------------------------- | ------- |
-| `api-key`        | OpenRouter API key                                  | string  |
-| `default-model`  | Default model alias or OpenRouter ID                | string  |
-| `default-length` | Default output length: `short`, `medium`, or `long` | string  |
-| `disable-copy`   | Disable auto-copy to clipboard                      | boolean |
-| `temperature`    | Sampling temperature (0.0 to 2.0)                   | float   |
+| Key                  | Description                                         | Type    |
+| -------------------- | --------------------------------------------------- | ------- |
+| `openrouter-api-key` | OpenRouter API key                                  | string  |
+| `cerebras-api-key`   | Cerebras API key (direct provider access)           | string  |
+| `api-key`            | Raypaste API key (reserved for future backend)      | string  |
+| `default-model`      | Default model alias or OpenRouter ID                | string  |
+| `default-length`     | Default output length: `short`, `medium`, or `long` | string  |
+| `disable-copy`       | Disable auto-copy to clipboard                      | boolean |
+| `temperature`        | Sampling temperature (0.0 to 2.0)                   | float   |
 
 **Config prompt command:**
 
@@ -212,7 +233,7 @@ Configuration is loaded in the following order (later sources override earlier o
 
 1. Default values
 2. Config file (`~/.raypaste/config.yaml`)
-3. Environment variables (`RAYPASTE_*`)
+3. Environment variables (`OPENROUTER_API_KEY`, `CEREBRAS_API_KEY`, `RAYPASTE_*`)
 4. CLI flags
 
 ### Config Command
@@ -220,8 +241,9 @@ Configuration is loaded in the following order (later sources override earlier o
 The easiest way to manage configuration is via the `config` command:
 
 ```bash
-# Set your API key
-raypaste config set api-key sk-or-v1-...
+# Set your API key(s)
+raypaste config set cerebras-api-key csk-...
+raypaste config set openrouter-api-key sk-or-v1-...
 
 # Set default model
 raypaste config set default-model cerebras-llama-8b
@@ -230,7 +252,7 @@ raypaste config set default-model cerebras-llama-8b
 raypaste config set default-length medium
 
 # View current settings
-raypaste config get api-key
+raypaste config get cerebras-api-key
 raypaste config get default-model
 ```
 
@@ -515,22 +537,32 @@ cat requirements.txt | raypaste "analyze these dependencies" -l medium
 ### API Key Not Found
 
 ```
-Error: API key not found. Set RAYPASTE_API_KEY environment variable or add to config.yaml
+Error: No API key configured. Set one of:
+  CEREBRAS_API_KEY    - for direct Cerebras inference
+  OPENROUTER_API_KEY  - for OpenRouter multi-provider access
+  Or run: raypaste config set cerebras-api-key <key>
 ```
 
-**Solution**: The CLI looks for your API key in two places:
+**Solution**: The CLI looks for API keys in these places:
 
-1. **Environment Variable**: `RAYPASTE_API_KEY` must be exported in your current shell session
+1. **Environment Variables**: `CEREBRAS_API_KEY` and/or `OPENROUTER_API_KEY`
 
    ```bash
-   export RAYPASTE_API_KEY=your_api_key_here
+   export CEREBRAS_API_KEY=your_cerebras_key
+   # or
+   export OPENROUTER_API_KEY=your_openrouter_key
    ```
 
-2. **Config File**: `~/.raypaste/config.yaml` (note: this is in your home directory, not the project directory)
+2. **Config Command** (recommended):
+
    ```bash
-   mkdir -p ~/.raypaste
-   cp config.yaml.example ~/.raypaste/config.yaml
-   # Edit the file and add your API key
+   raypaste config set cerebras-api-key your_key
+   ```
+
+3. **Config File**: `~/.raypaste/config.yaml` (note: this is in your home directory, not the project directory)
+   ```yaml
+   cerebras_api_key: "your_key"
+   openrouter_api_key: "your_key"
    ```
 
 **Common Issues**:
@@ -539,6 +571,7 @@ Error: API key not found. Set RAYPASTE_API_KEY environment variable or add to co
 - Having `config.yaml` in the project directory won't work - the CLI looks in `~/.raypaste/config.yaml`
 - Setting the variable without `export` won't work - it must be exported to be visible to the program
 - You don't need to rebuild the executable after setting the API key
+- If you previously used `RAYPASTE_API_KEY` with an OpenRouter key (`sk-or-*` prefix), it will still work but you'll see a migration notice
 
 ### Clipboard Not Working
 

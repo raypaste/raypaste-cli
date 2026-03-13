@@ -81,6 +81,7 @@ func TestBuildRequest(t *testing.T) {
 				false,
 				customModels,
 				tt.maxTokensOverride,
+				"openrouter",
 			)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("BuildRequest() error = %v, wantErr %v", err, tt.wantErr)
@@ -102,6 +103,49 @@ func TestBuildRequest(t *testing.T) {
 				if len(req.Messages) != 2 {
 					t.Errorf("BuildRequest() Messages length = %v, want 2", len(req.Messages))
 				}
+			}
+		})
+	}
+}
+
+func TestBuildRequestDirectProvider(t *testing.T) {
+	customModels := map[string]config.Model{
+		"cerebras-test": {
+			ID:       "meta-llama/llama-3.1-8b-instruct",
+			DirectID: "llama-3.1-8b-instruct",
+			Provider: "cerebras",
+			Tier:     "fast",
+		},
+		"no-direct-id": {
+			ID:       "some/model",
+			Provider: "custom",
+			Tier:     "fast",
+		},
+	}
+
+	tests := []struct {
+		name      string
+		alias     string
+		provider  string
+		wantModel string
+	}{
+		{"cerebras direct uses DirectID", "cerebras-test", "cerebras", "llama-3.1-8b-instruct"},
+		{"cerebras via openrouter uses ID", "cerebras-test", "openrouter", "meta-llama/llama-3.1-8b-instruct"},
+		{"no DirectID falls back to ID", "no-direct-id", "custom", "some/model"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := BuildRequest(
+				tt.alias, "system", "user",
+				types.OutputLengthMedium, 0.7, false,
+				customModels, 0, tt.provider,
+			)
+			if err != nil {
+				t.Fatalf("BuildRequest() error = %v", err)
+			}
+			if req.Model != tt.wantModel {
+				t.Errorf("BuildRequest() Model = %q, want %q", req.Model, tt.wantModel)
 			}
 		})
 	}

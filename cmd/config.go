@@ -24,11 +24,13 @@ This command allows you to view and modify configuration values.
 Configuration is stored in ~/.raypaste/config.yaml.
 
 ` + output.Bold("Available config keys:") + `
-  ` + output.Green("api-key") + `        - OpenRouter API key
-  ` + output.Green("default-model") + `  - Default model alias or OpenRouter ID
-  ` + output.Green("default-length") + ` - Default output length (short|medium|long)
-  ` + output.Green("disable-copy") + `   - Disable auto-copy to clipboard (true|false)
-  ` + output.Green("temperature") + `    - Sampling temperature (0.0-2.0)
+  ` + output.Green("openrouter-api-key") + ` - OpenRouter API key
+  ` + output.Green("cerebras-api-key") + `   - Cerebras API key (direct provider access)
+  ` + output.Green("api-key") + `            - Raypaste API key (reserved for future backend)
+  ` + output.Green("default-model") + `      - Default model alias or OpenRouter ID
+  ` + output.Green("default-length") + `     - Default output length (short|medium|long)
+  ` + output.Green("disable-copy") + `       - Disable auto-copy to clipboard (true|false)
+  ` + output.Green("temperature") + `        - Sampling temperature (0.0-2.0)
 
 ` + output.Bold("Config subcommands:") + `
   ` + output.Green("set [key] [value]") + `     - Set a configuration value
@@ -36,7 +38,8 @@ Configuration is stored in ~/.raypaste/config.yaml.
   ` + output.Green("prompt") + `               - Manage custom prompt templates
 
 ` + output.Bold("Examples:") + `
-  raypaste config set api-key sk-or-v1-...
+  raypaste config set openrouter-api-key sk-or-v1-...
+  raypaste config set cerebras-api-key csk-...
   raypaste config set default-model cerebras-llama-8b
   raypaste config set default-length short
   raypaste config set disable-copy true
@@ -65,6 +68,20 @@ var configSetCmd = &cobra.Command{
 		}
 
 		switch key {
+		case "openrouter-api-key":
+			cfg.OpenRouterAPIKey = value
+			if err := cfg.SaveTo(cfgFile); err != nil {
+				return err
+			}
+			fmt.Fprintln(os.Stderr, output.Green("✓")+" OpenRouter API key saved to config")
+
+		case "cerebras-api-key":
+			cfg.CerebrasAPIKey = value
+			if err := cfg.SaveTo(cfgFile); err != nil {
+				return err
+			}
+			fmt.Fprintln(os.Stderr, output.Green("✓")+" Cerebras API key saved to config")
+
 		case "api-key":
 			cfg.APIKey = value
 			if err := cfg.SaveTo(cfgFile); err != nil {
@@ -120,11 +137,19 @@ var configSetCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "%s Temperature set to %s\n", output.Green("✓"), output.Cyan(value))
 
 		default:
-			return fmt.Errorf("unknown config key: %s\nAvailable keys: api-key, default-model, default-length, disable-copy, temperature", key)
+			return fmt.Errorf("unknown config key: %s\nAvailable keys: openrouter-api-key, cerebras-api-key, api-key, default-model, default-length, disable-copy, temperature", key)
 		}
 
 		return nil
 	},
+}
+
+// maskSecret returns a masked representation of a secret, showing only the last 4 characters.
+func maskSecret(s string) string {
+	if len(s) <= 4 {
+		return "****"
+	}
+	return strings.Repeat("*", len(s)-4) + s[len(s)-4:]
 }
 
 // configGetCmd represents the config get command
@@ -143,11 +168,35 @@ var configGetCmd = &cobra.Command{
 		}
 
 		switch key {
+		case "openrouter-api-key":
+			if key := cfg.GetOpenRouterAPIKey(); key != "" {
+				masked := maskSecret(key)
+				if cfg.OpenRouterAPIKey != "" {
+					fmt.Println(masked)
+				} else {
+					fmt.Println(masked + " (from environment)")
+				}
+			} else {
+				fmt.Println("not set")
+			}
+
+		case "cerebras-api-key":
+			if key := cfg.GetCerebrasAPIKey(); key != "" {
+				masked := maskSecret(key)
+				if cfg.CerebrasAPIKey != "" {
+					fmt.Println(masked)
+				} else {
+					fmt.Println(masked + " (from environment)")
+				}
+			} else {
+				fmt.Println("not set")
+			}
+
 		case "api-key":
 			if cfg.APIKey != "" {
-				fmt.Println(cfg.APIKey)
+				fmt.Println(maskSecret(cfg.APIKey))
 			} else if envKey := os.Getenv("RAYPASTE_API_KEY"); envKey != "" {
-				fmt.Println(envKey + " (from environment)")
+				fmt.Println(maskSecret(envKey) + " (from environment)")
 			} else {
 				fmt.Println("not set")
 			}
@@ -165,7 +214,7 @@ var configGetCmd = &cobra.Command{
 			fmt.Println(cfg.Temperature)
 
 		default:
-			return fmt.Errorf("unknown config key: %s\nAvailable keys: api-key, default-model, default-length, disable-copy, temperature", key)
+			return fmt.Errorf("unknown config key: %s\nAvailable keys: openrouter-api-key, cerebras-api-key, api-key, default-model, default-length, disable-copy, temperature", key)
 		}
 
 		return nil

@@ -43,14 +43,16 @@ var rootCmd = &cobra.Command{
 	Short: output.Cyan("Generate ") + output.Bold("AI-optimized prompts") + output.Cyan(" from your input"),
 	Long: output.Bold("raypaste-cli") + output.Cyan(" - Ultra-fast AI revised meta prompts from your input text.") + `
 
-A Cobra-based CLI that generates meta-prompts and general AI completions via OpenRouter,
+A Cobra-based CLI that generates meta-prompts and general AI completions,
 with configurable output lengths and fast/small model routing.
+Supports direct Cerebras inference and OpenRouter for multi-provider access.
 
 ` + output.Bold("Setup:") + `
-  raypaste config set api-key ` + output.Green("sk-or-v1-...") + `        ` + output.Cyan("# Set your OpenRouter API key") + `
-  raypaste config set default-model ` + output.Green("cerebras-llama-8b") + `  ` + output.Cyan("# Set default model") + `
-  raypaste config ` + output.Green("get default-model") + `                     ` + output.Cyan("# View current settings") + `
-  raypaste config prompt ` + output.Green("add my-prompt") + `                 ` + output.Cyan("# Add a custom prompt") + `
+  raypaste config set cerebras-api-key ` + output.Green("csk-...") + `          ` + output.Cyan("# Direct Cerebras access") + `
+  raypaste config set openrouter-api-key ` + output.Green("sk-or-v1-...") + `   ` + output.Cyan("# OpenRouter access") + `
+  raypaste config set default-model ` + output.Green("cerebras-llama-8b") + `    ` + output.Cyan("# Set default model") + `
+  raypaste config ` + output.Green("get default-model") + `                       ` + output.Cyan("# View current settings") + `
+  raypaste config prompt ` + output.Green("add my-prompt") + `                   ` + output.Cyan("# Add a custom prompt") + `
 
 ` + output.Bold("Examples:") + `
   raypaste "help me write a blog post" ` + output.Green("--length short") + `
@@ -119,9 +121,12 @@ func initConfig() {
 		os.Exit(1)
 	}
 
-	// Validate API key
-	if cfg.GetAPIKey() == "" {
-		fmt.Fprintln(os.Stderr, "Error: API key not found. Set RAYPASTE_API_KEY environment variable or add to config.yaml")
+	// Validate that at least one API key is configured
+	if !cfg.HasAnyAPIKey() {
+		fmt.Fprintln(os.Stderr, "Error: No API key configured. Set one of:")
+		fmt.Fprintln(os.Stderr, "  CEREBRAS_API_KEY    - for direct Cerebras inference")
+		fmt.Fprintln(os.Stderr, "  OPENROUTER_API_KEY  - for OpenRouter multi-provider access")
+		fmt.Fprintln(os.Stderr, "  Or run: raypaste config set cerebras-api-key <key>")
 		os.Exit(1)
 	}
 }
@@ -165,6 +170,12 @@ func runGenerate(_ *cobra.Command, args []string) error {
 
 	maxTokensOverride := store.GetMaxTokensOverride(promptFlag, length)
 
+	// Resolve which provider and API key to use for this model
+	pk, err := cfg.ResolveProviderKey(model)
+	if err != nil {
+		return err
+	}
+
 	req, err := llm.BuildRequest(
 		model,
 		systemPrompt,
@@ -174,12 +185,13 @@ func runGenerate(_ *cobra.Command, args []string) error {
 		false, // no streaming for generate
 		cfg.Models,
 		maxTokensOverride,
+		pk.Provider,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to build request: %w", err)
 	}
 
-	client := llm.NewClient(cfg.GetAPIKey())
+	client := llm.NewClient(pk.Provider, pk.APIKey)
 
 	// Show progress indicator
 	fmt.Fprintln(os.Stderr, output.GeneratingMessage(model, string(length), projCtx.Filename))
